@@ -1,4 +1,4 @@
-package com.real.time.chatapp;
+package com.real.time.chatapp.Rest;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.real.time.chatapp.Entities.User;
+import com.real.time.chatapp.Exception.UserNotFoundException;
 
 //TODO: Implement This As A REST Controller (i.e Use Spring HATEOAS and UserModelAssembler)
 @RestController

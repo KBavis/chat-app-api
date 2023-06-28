@@ -1,4 +1,4 @@
-package com.real.time.chatapp;
+package com.real.time.chatapp.Entities;
 
 import java.util.ArrayList;
 import java.util.Date;
