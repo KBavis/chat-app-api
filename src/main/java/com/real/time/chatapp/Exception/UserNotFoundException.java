@@ -1,7 +1,7 @@
-package com.real.time.chatapp;
+package com.real.time.chatapp.Exception;
 
 public class UserNotFoundException extends RuntimeException{
-	UserNotFoundException(Long id){
+	public UserNotFoundException(Long id){
 		super("Could not find user " + id);
 	}
 }

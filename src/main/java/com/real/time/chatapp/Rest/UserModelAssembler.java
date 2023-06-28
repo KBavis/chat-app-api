@@ -1,4 +1,4 @@
-package com.real.time.chatapp;
+package com.real.time.chatapp.Rest;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
@@ -7,6 +7,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;
+
+import com.real.time.chatapp.Entities.User;
 
 @Component
 public class UserModelAssembler implements RepresentationModelAssembler<User, EntityModel<User>>{

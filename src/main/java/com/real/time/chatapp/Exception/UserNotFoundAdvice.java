@@ -1,4 +1,4 @@
-package com.real.time.chatapp;
+package com.real.time.chatapp.Exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
