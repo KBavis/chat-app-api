@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -54,7 +55,7 @@ class UserController {
 		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
 	}
 
-	@PostMapping("users/{id}")
+	@PutMapping("users/{id}")
 	ResponseEntity<?> updateUser(@RequestBody User newUser, @PathVariable Long id) {
 		User updatedUser = user_repository.findById(id).map(user -> {
 			user.setFirstName(newUser.getFirstName());

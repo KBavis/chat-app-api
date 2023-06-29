@@ -1,7 +1,7 @@
 package com.real.time.chatapp.Entities;
 
 
-import java.time.LocalTime;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -24,7 +24,6 @@ public class Message {
 	private boolean isRead;
 	private Date sendDate; 
 	private String content;
-	private LocalTime sendTime;
 	/**
 	 *  Many Messages to One User
 	 *  Join Column states our column in Message table will be called 'recipient_id' 
@@ -49,13 +48,12 @@ public class Message {
 	private Conversation conversation;
 	
 	public Message() {}
-	public Message(boolean isRead, User recipient, User sender, Date sendDate, String content, LocalTime time) {
+	public Message(boolean isRead, User recipient, User sender, String content) {
 		this.isRead = isRead;
 		this.recipient = recipient;
 		this.sender = sender;
-		this.sendDate = sendDate;
 		this.content = content;
-		this.sendTime = time;
+		this.sendDate = new Date();
 	}
 	public Long getId() {
 		return message_id;
@@ -96,12 +94,6 @@ public class Message {
 	public void setContent(String content) {
 		this.content = content;
 	}
-	public LocalTime getTime() {
-		return sendTime;
-	}
-	public void setTime(LocalTime time) {
-		this.sendTime = time;
-	}
 	public Conversation getConversation() {
 		return conversation;
 	}
@@ -110,7 +102,7 @@ public class Message {
 	}
 	@Override
 	public int hashCode() {
-		return Objects.hash(content, message_id, isRead, recipient, sendDate, sender, sendTime);
+		return Objects.hash(content, message_id, isRead, recipient, sendDate, sender);
 	}
 	@Override
 	public boolean equals(Object obj) {
@@ -123,13 +115,12 @@ public class Message {
 		Message other = (Message) obj;
 		return Objects.equals(content, other.content) && Objects.equals(message_id, other.message_id) && isRead == other.isRead
 				&& Objects.equals(recipient, other.recipient) && Objects.equals(sendDate, other.sendDate)
-				&& Objects.equals(sender, other.sender)
-				&& Objects.equals(sendTime, other.sendTime);
+				&& Objects.equals(sender, other.sender);
 	}
 	@Override
 	public String toString() {
 		return "Message [id=" + message_id + ", isRead=" + isRead + ", recipient=" + recipient + ", sender=" + sender
-				+ ", sendDate=" + sendDate + ", content=" + content + ", sendTime=" + sendTime + "]";
+				+ ", sendDate=" + sendDate + ", content=" + content + "]";
 	}
 	
 }

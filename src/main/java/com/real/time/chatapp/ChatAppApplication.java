@@ -1,4 +1,4 @@
-package com.real.time.chatapp.Main;
+package com.real.time.chatapp;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
