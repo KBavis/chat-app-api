@@ -7,5 +7,5 @@ import com.real.time.chatapp.Entities.User;
 
 @Repository
 interface UserRepository extends JpaRepository<User,Long>{
-	
+	//implement search functionality
 }
