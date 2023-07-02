@@ -17,6 +17,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,7 +44,7 @@ public class User {
 	private String lastName;
 	private String password;
 
-	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinTable(name = "user_conversations",
 	joinColumns = {
 			@JoinColumn(name = "user_id", referencedColumnName = "user_id")
@@ -55,12 +56,12 @@ public class User {
 
 //	One User Can Be Inolved In Many Sent Messages
 //	MappedBy means we are referencing the 'User sender' field in User table
-	@OneToMany(mappedBy = "sender", cascade = CascadeType.MERGE)
+	@OneToMany(mappedBy = "sender", cascade = CascadeType.PERSIST)
 	private List<Message> sentMessages;
 
 	// One User Can Be Involved In Many Recieved Messages
 	// MappedBy means we are referencing the 'User recipient' field in User Table
-	@OneToMany(mappedBy = "recipient", cascade = CascadeType.MERGE)
+	@OneToMany(mappedBy = "recipient", cascade = CascadeType.PERSIST)
 	private List<Message> recievedMessages;
 
 	
