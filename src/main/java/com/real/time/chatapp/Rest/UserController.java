@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.real.time.chatapp.Entities.Conversation;
 import com.real.time.chatapp.Entities.User;
 import com.real.time.chatapp.Exception.UserNotFoundException;
 
@@ -27,13 +28,22 @@ class UserController {
 
 	private final UserRepository user_repository;
 	private final UserModelAssembler user_assembler;
+	private final ConversationRepository conversation_repository;
+	private final ConversationModelAssembler conversation_assembler;
 
-	UserController(UserRepository user_repository, UserModelAssembler user_assembler) {
+	UserController(UserRepository user_repository, UserModelAssembler user_assembler,
+			ConversationModelAssembler conversation_assembler, ConversationRepository conversation_repository) {
 		this.user_repository = user_repository;
 		this.user_assembler = user_assembler;
+		this.conversation_repository = conversation_repository;
+		this.conversation_assembler = conversation_assembler;
 	}
 
-	// Fetching All Users
+	/**
+	 * Fetching all users 
+	 * 
+	 * @return
+	 */
 	@GetMapping("/users")
 	CollectionModel<EntityModel<User>> all() {
 		List<EntityModel<User>> users = user_repository.findAll().stream().map(user_assembler::toModel)
@@ -41,20 +51,39 @@ class UserController {
 
 		return CollectionModel.of(users, linkTo(methodOn(UserController.class).all()).withSelfRel());
 	}
-
+	
+	/**
+	 * Fetching a specific user
+	 * 
+	 * @param id
+	 * @return
+	 */
 	@GetMapping("/users/{id}")
 	EntityModel<User> one(@PathVariable Long id) {
 
 		User user = user_repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 		return user_assembler.toModel(user);
 	}
-
+	
+	/**
+	 * Creating a new User
+	 * 
+	 * @param newUser
+	 * @return
+	 */
 	@PostMapping("/users")
 	ResponseEntity<?> newUser(@RequestBody User newUser) {
 		EntityModel<User> entityModel = user_assembler.toModel(user_repository.save(newUser));
 		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
 	}
-
+	
+	/**
+	 *  Updating a user
+	 *  
+	 * @param newUser
+	 * @param id
+	 * @return
+	 */
 	@PutMapping("users/{id}")
 	ResponseEntity<?> updateUser(@RequestBody User newUser, @PathVariable Long id) {
 		User updatedUser = user_repository.findById(id).map(user -> {
@@ -66,7 +95,7 @@ class UserController {
 			user.setUserName(newUser.getUserName());
 			return user_repository.save(user);
 		}).orElseGet(() -> {
-			newUser.setId(id);
+//			newUser.setId(id);
 			return user_repository.save(newUser);
 		});
 
@@ -74,7 +103,15 @@ class UserController {
 
 		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
 	}
+	
 
+	
+	/**
+	 * Deleting a User 
+	 * 
+	 * @param id
+	 * @return
+	 */
 	@DeleteMapping("/users/{id}")
 	ResponseEntity<?> deleteUser(@PathVariable Long id) {
 		user_repository.deleteById(id);
