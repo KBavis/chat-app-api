@@ -5,8 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,6 +13,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreRemove;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -41,9 +40,20 @@ public class Conversation {
 
 	/**
 	 * One Conversation To Many Messages
+	 * CascadeType.REMOVE indicates that when a Converesation is dleeted, all related Messages associated with that Conversation will be removed 
 	 */
-	@OneToMany(mappedBy = "conversation")
+	@OneToMany(mappedBy = "conversation", cascade = CascadeType.REMOVE)
 	private List<Message> messages;
 
+	/**
+	 *  Used to specify callback method that is executed before Conversation is removed 
+	 *  Manually remove the Conversation from the assoicated Users
+	 */
+	@PreRemove
+	private void preRemove() {
+		for(User user: conversation_users) {
+			user.getList_conversations().remove(this);
+		}
+	}
 
 }
