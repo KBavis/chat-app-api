@@ -3,15 +3,14 @@ package com.real.time.chatapp.Rest;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -79,6 +78,7 @@ public class ConversationController {
 		Conversation conversation = new Conversation();
 		conversation.getConversation_users().add(userOne);
 		conversation.getConversation_users().add(userTwo);
+		conversation.setNumUsers(2);
 
 		userOne.getList_conversations().add(conversation);
 		userTwo.getList_conversations().add(conversation);
@@ -86,6 +86,32 @@ public class ConversationController {
 				.toModel(conversationRepository.save(conversation));
 		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
 
+	}
+	
+	/**
+	 * Update a conversation 
+	 * 
+	 * @param conversationId
+	 * @param newConversation
+	 * @return
+	 */
+	@PutMapping("/conversation/{conversationId}")
+	ResponseEntity<?> updateConversation(@PathVariable Long conversationId, @RequestBody Conversation newConversation){
+		Conversation updatedConversation = conversationRepository.findById(conversationId).map(conversation -> {
+			conversation.setConversation_id(newConversation.getConversation_id());
+			conversation.setConversation_users(newConversation.getConversation_users());
+			conversation.setConversationStart(newConversation.getConversationStart());
+			conversation.setMessages(newConversation.getMessages());
+			conversation.setNumUsers(newConversation.getNumUsers());
+			return conversationRepository.save(conversation);
+		}).orElseGet(() -> {
+			newConversation.setConversation_id(conversationId);
+			return conversationRepository.save(newConversation);
+		});
+		
+		EntityModel<Conversation> entityModel = conversationAssembler.toModel(updatedConversation);
+		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
+		
 	}
 	
 	/**
@@ -107,5 +133,19 @@ public class ConversationController {
 		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
 
 	}
+	
+	/**
+	 * Delete a conversation
+	 * 
+	 * @param conversationId
+	 * @return
+	 */
+	@DeleteMapping("/conversations/{conversationId}")
+	ResponseEntity<?> deleteConversation(@PathVariable Long conversationId){
+		conversationRepository.deleteById(conversationId);
+		return ResponseEntity.noContent().build();
+	}
+	
+	
 
 }
