@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.real.time.chatapp.Entities.Conversation;
 import com.real.time.chatapp.Entities.User;
 import com.real.time.chatapp.Exception.UserNotFoundException;
 
@@ -40,7 +40,7 @@ class UserController {
 	}
 
 	/**
-	 * Fetching all users 
+	 * Fetching all users
 	 * 
 	 * @return
 	 */
@@ -51,7 +51,7 @@ class UserController {
 
 		return CollectionModel.of(users, linkTo(methodOn(UserController.class).all()).withSelfRel());
 	}
-	
+
 	/**
 	 * Fetching a specific user
 	 * 
@@ -66,6 +66,35 @@ class UserController {
 	}
 	
 	/**
+	 * Search for users based on name
+	 * @param name
+	 * @return
+	 */
+	@GetMapping("/search/users/name")
+	CollectionModel<EntityModel<User>> searchUsersByName(@RequestParam String name) {
+		String[] firstAndLast = name.split(" ");
+		List<EntityModel<User>> entityModels = user_repository.searchUsersByName(firstAndLast[0], firstAndLast[1])
+				.stream().map(user_assembler::toModel).collect(Collectors.toList());
+		
+		return CollectionModel.of(entityModels,
+				linkTo(methodOn(UserController.class).searchUsersByName(name)).withSelfRel());
+	}
+	
+	/**
+	 * Search for users by username
+	 * @param userName
+	 * @return
+	 */
+	@GetMapping("/search/users/userName")
+	CollectionModel<EntityModel<User>> searchUsersByUserName(@RequestParam String userName){
+		List<EntityModel<User>> entityModels = user_repository.searchUsersByUserName(userName).stream().map(user_assembler::toModel).collect(Collectors.toList());
+		
+		return CollectionModel.of(entityModels,
+				linkTo(methodOn(UserController.class).searchUsersByUserName(userName)).withSelfRel());
+	}
+	
+	
+	/**
 	 * Creating a new User
 	 * 
 	 * @param newUser
@@ -76,10 +105,10 @@ class UserController {
 		EntityModel<User> entityModel = user_assembler.toModel(user_repository.save(newUser));
 		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
 	}
-	
+
 	/**
-	 *  Updating a user
-	 *  
+	 * Updating a user
+	 * 
 	 * @param newUser
 	 * @param id
 	 * @return
@@ -103,11 +132,9 @@ class UserController {
 
 		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
 	}
-	
 
-	
 	/**
-	 * Deleting a User 
+	 * Deleting a User
 	 * 
 	 * @param id
 	 * @return
