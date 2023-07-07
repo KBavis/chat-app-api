@@ -27,7 +27,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Conversation {
-	// TODO: Enable Search Enpoints Using JpaRepository Methods
 	private @Id @GeneratedValue(strategy = GenerationType.IDENTITY) Long conversation_id;
 	private int numUsers;
 	private Date conversationStart = new Date();
@@ -42,7 +41,7 @@ public class Conversation {
 	 * One Conversation To Many Messages
 	 * CascadeType.REMOVE indicates that when a Converesation is dleeted, all related Messages associated with that Conversation will be removed 
 	 */
-	@OneToMany(mappedBy = "conversation", cascade = CascadeType.REMOVE)
+	@OneToMany(mappedBy = "conversation", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Message> messages;
 
 	/**
