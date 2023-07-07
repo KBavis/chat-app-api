@@ -33,7 +33,7 @@ public class Message {
 	 *  Many Messages to One User
 	 *  Join Column states our column in Message table will be called 'recipient_id' 
 	 */
-	@ManyToOne(cascade = CascadeType.PERSIST)
+	@ManyToOne
 	@JoinColumn(name = "recipient_user_id", referencedColumnName = "user_id")
 	private User recipient;
 	
@@ -41,14 +41,14 @@ public class Message {
 	 *  Many Messages to One User
 	 *  Join Column states our column in Message table will be called 'sender_id' 
 	 */
-	@ManyToOne(cascade = CascadeType.PERSIST)
+	@ManyToOne
 	@JoinColumn(name = "sender_user_id", referencedColumnName ="user_id")
 	private User sender;
 	
     /**
      *  Many Messages To One Conversations
      */
-	@ManyToOne(cascade = CascadeType.PERSIST)
+	@ManyToOne
 	@JoinColumn(name = "conversation_id", referencedColumnName = "conversation_id")
 	private Conversation conversation;
 	

@@ -6,17 +6,6 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -44,7 +33,7 @@ public class User {
 	private String lastName;
 	private String password;
 
-	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "user_conversations",
 	joinColumns = {
 			@JoinColumn(name = "user_id", referencedColumnName = "user_id")
@@ -56,13 +45,23 @@ public class User {
 
 //	One User Can Be Inolved In Many Sent Messages
 //	MappedBy means we are referencing the 'User sender' field in User table
-	@OneToMany(mappedBy = "sender", cascade = CascadeType.PERSIST)
+//	CascadeType.REMOVE to remove any messages sent by this user
+	@OneToMany(mappedBy = "sender", cascade = CascadeType.REMOVE , orphanRemoval = true)
 	private List<Message> sentMessages;
 
 	// One User Can Be Involved In Many Recieved Messages
 	// MappedBy means we are referencing the 'User recipient' field in User Table
-	@OneToMany(mappedBy = "recipient", cascade = CascadeType.PERSIST)
+	@OneToMany(mappedBy = "recipient", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Message> recievedMessages;
+	
+
+	@PreRemove
+	private void preRemove() {
+		//Delete all message sent by this user
+		for(Conversation convo: list_conversations) {
+			convo.getConversation_users().remove(this);
+		}
+	}
 
 	
 
