@@ -4,6 +4,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.hateoas.CollectionModel;
@@ -19,10 +20,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.real.time.chatapp.Entities.Message;
 import com.real.time.chatapp.Entities.User;
 import com.real.time.chatapp.Exception.UserNotFoundException;
 
-//TODO: Implement This As A REST Controller (i.e Use Spring HATEOAS and UserModelAssembler)
 @RestController
 class UserController {
 
@@ -30,13 +31,15 @@ class UserController {
 	private final UserModelAssembler user_assembler;
 	private final ConversationRepository conversation_repository;
 	private final ConversationModelAssembler conversation_assembler;
+	private final MessageRepository message_repository;
 
 	UserController(UserRepository user_repository, UserModelAssembler user_assembler,
-			ConversationModelAssembler conversation_assembler, ConversationRepository conversation_repository) {
+			ConversationModelAssembler conversation_assembler, ConversationRepository conversation_repository, MessageRepository message_repository) {
 		this.user_repository = user_repository;
 		this.user_assembler = user_assembler;
 		this.conversation_repository = conversation_repository;
 		this.conversation_assembler = conversation_assembler;
+		this.message_repository = message_repository;
 	}
 
 	/**
@@ -124,7 +127,6 @@ class UserController {
 			user.setUserName(newUser.getUserName());
 			return user_repository.save(user);
 		}).orElseGet(() -> {
-//			newUser.setId(id);
 			return user_repository.save(newUser);
 		});
 
@@ -141,6 +143,19 @@ class UserController {
 	 */
 	@DeleteMapping("/users/{id}")
 	ResponseEntity<?> deleteUser(@PathVariable Long id) {
+		//TODO: Consider another way to do this logic ??
+		/**
+		 *  Delete messages sent by User and remove all recipients of each message sent by User
+		 */
+		
+		User user = user_repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+		for(Message msg: user.getSentMessages()) {
+			Set<User> recipients = msg.getRecipients();
+			for(User current: recipients) {
+				current.getRecievedMessages().remove(msg);
+			}
+			message_repository.deleteById(msg.getMessage_id());
+		}
 		user_repository.deleteById(id);
 		return ResponseEntity.noContent().build();
 	}
