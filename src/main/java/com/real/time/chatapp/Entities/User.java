@@ -27,42 +27,39 @@ import lombok.Setter;
 @Setter
 public class User {
 
-	@Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long user_id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long user_id;
 	private String userName;
 	private String firstName;
 	private String lastName;
 	private String password;
 
 	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "user_conversations",
-	joinColumns = {
-			@JoinColumn(name = "user_id", referencedColumnName = "user_id")
-	},
-	inverseJoinColumns = {
-			@JoinColumn(name = "conversation_id", referencedColumnName = "conversation_id")
-	})
+	@JoinTable(name = "user_conversations", joinColumns = {
+			@JoinColumn(name = "user_id", referencedColumnName = "user_id") }, inverseJoinColumns = {
+					@JoinColumn(name = "conversation_id", referencedColumnName = "conversation_id") })
 	private Set<Conversation> list_conversations = new HashSet<>();
 
-//	One User Can Be Inolved In Many Sent Messages
-//	MappedBy means we are referencing the 'User sender' field in User table
-//	CascadeType.REMOVE to remove any messages sent by this user
-	@OneToMany(mappedBy = "sender", cascade = CascadeType.REMOVE , orphanRemoval = true)
+	@OneToMany(mappedBy = "sender")
 	private List<Message> sentMessages;
 
-	// One User Can Be Involved In Many Recieved Messages
-	// MappedBy means we are referencing the 'User recipient' field in User Table
-	@OneToMany(mappedBy = "recipient", cascade = CascadeType.REMOVE, orphanRemoval = true)
-	private List<Message> recievedMessages;
-	
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "user_recieved_messages", joinColumns = {
+			@JoinColumn(name = "user_id", referencedColumnName = "user_id") }, inverseJoinColumns = {
+					@JoinColumn(name = "message_id", referencedColumnName = "message_id") })
+	private Set<Message> recievedMessages = new HashSet<>();
 
+	/**
+	 * Used as a Callback to remove this user from any conversations upon deletion
+	 */
 	@PreRemove
 	private void preRemove() {
-		//Delete all message sent by this user
-		for(Conversation convo: list_conversations) {
+		// Delete all message sent by this user
+		for (Conversation convo : list_conversations) {
 			convo.getConversation_users().remove(this);
 		}
-	}
 
-	
+	}
 
 }

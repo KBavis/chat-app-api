@@ -4,7 +4,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -31,9 +33,10 @@ import com.real.time.chatapp.Exception.UserNotInConversationException;
 
 @RestController
 public class MessageController {
-
-	// TODO: Add logic in MessageService and Not in the MessageController
-
+	/**
+	 * \ TODO: Consider adding funcitonality to a MessageService class to decluter
+	 * funcitonality (good practice)
+	 */
 	private final MessageRepository messageRepository;
 	private final MessageModelAssembler messageAssembler;
 	private final UserRepository userRepository;
@@ -104,9 +107,10 @@ public class MessageController {
 		return CollectionModel.of(entityModels,
 				linkTo(methodOn(MessageController.class).searchMessagesByContent(content)).withSelfRel());
 	}
-	
+
 	/**
 	 * Search messages by send date
+	 * 
 	 * @param date
 	 * @return
 	 */
@@ -122,13 +126,14 @@ public class MessageController {
 
 	/**
 	 * Search messages for messages that have not been read
+	 * 
 	 * @return
 	 */
 	@GetMapping("/search/messages/read")
 	CollectionModel<EntityModel<Message>> searchMessagesByIsRead() {
 		List<EntityModel<Message>> entityModels = messageRepository.findMessageByIsRead().stream()
 				.map(messageAssembler::toModel).collect(Collectors.toList());
-		
+
 		return CollectionModel.of(entityModels,
 				linkTo(methodOn(MessageController.class).searchMessagesByIsRead()).withSelfRel());
 	}
@@ -142,31 +147,26 @@ public class MessageController {
 	 * @param message
 	 * @return
 	 */
-	/**
-	 * TODO Maybe make this so we don't need to specify a userIdOne and userIdTwo -
-	 * instead, it could simply be the conversationId, and maybe the senderId - that
-	 * way, we could set the the messageSender as the stated senderId - and we could
-	 * change the messageRecipient to a List<User> - whatever users that are in this
-	 * conversation that are not the sender would be set as a message recipient -
-	 * this means we would have to update our policies on cascading/removing
-	 */
-
-	@PostMapping("/messages/{conversationId}/{userIdOne}/{userIdTwo}")
-	ResponseEntity<?> newMessage(@RequestBody Message message, @PathVariable Long userIdOne,
-			@PathVariable Long userIdTwo, @PathVariable Long conversationId) {
-		User sender = userRepository.findById(userIdOne).orElseThrow(() -> new UserNotFoundException(userIdOne));
-		User reciever = userRepository.findById(userIdTwo).orElseThrow(() -> new UserNotFoundException(userIdTwo));
+	@PostMapping("/messages/{conversationId}/{senderId}")
+	ResponseEntity<?> newMessage(@RequestBody Message message, @PathVariable Long senderId,
+			@PathVariable Long conversationId) {
+		User sender = userRepository.findById(senderId).orElseThrow(() -> new UserNotFoundException(senderId));
 
 		Conversation conversation = conversationRepository.findById(conversationId)
 				.orElseThrow(() -> new ConversationNotFoundException(conversationId));
 		if (!conversation.getConversation_users().contains(sender)) {
-			throw new UserNotInConversationException(userIdOne, conversationId);
+			throw new UserNotInConversationException(senderId, conversationId);
 		}
-		if (!conversation.getConversation_users().contains(reciever)) {
-			throw new UserNotInConversationException(userIdTwo, conversationId);
+		
+		//Set Recipients of Message As All Conversation Users Other Than Sender 
+		Set<User> conversationUsers = conversation.getConversation_users(); 
+		Set<User> recipients = new HashSet<>();
+		for(User recipient: conversationUsers) {
+			if(recipient != sender) {
+				recipients.add(recipient);
+			}
 		}
-
-		message.setRecipient(reciever);
+		message.setRecipients(recipients);
 		message.setSender(sender);
 		message.setConversation(conversation);
 
@@ -180,10 +180,12 @@ public class MessageController {
 		sentMessages.add(message);
 		sender.setSentMessages(sentMessages);
 
-		// Add Recieved Messages to the List of Recievers Recieved Messages
-		List<Message> recievedMessages = reciever.getRecievedMessages();
-		recievedMessages.add(message);
-		reciever.setRecievedMessages(recievedMessages);
+		// Add Recieved Messages to the List of Each Recievers Recieved Messages
+		for(User recipient: recipients) {
+			Set<Message> recievedMessages = recipient.getRecievedMessages();
+			recievedMessages.add(message);
+			recipient.setRecievedMessages(recievedMessages);
+		}
 
 		EntityModel<Message> entityModel = messageAssembler.toModel(messageRepository.save(message));
 		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
@@ -202,7 +204,7 @@ public class MessageController {
 		Message updatedMessage = messageRepository.findById(id).map(message -> {
 			message.setContent(newMessage.getContent());
 			message.setConversation(newMessage.getConversation());
-			message.setRecipient(newMessage.getRecipient());
+			message.setRecipients(newMessage.getRecipients());
 			message.setSendDate(newMessage.getSendDate());
 			message.setSender(newMessage.getSender());
 			return messageRepository.save(message);

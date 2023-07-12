@@ -3,12 +3,15 @@ package com.real.time.chatapp.Entities;
 
 
 import java.util.Date;
+import java.util.Set;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -29,13 +32,9 @@ public class Message {
 	private boolean isRead;
 	private Date sendDate = new Date(); 
 	private String content;
-	/**
-	 *  Many Messages to One User
-	 *  Join Column states our column in Message table will be called 'recipient_id' 
-	 */
-	@ManyToOne
-	@JoinColumn(name = "recipient_user_id", referencedColumnName = "user_id")
-	private User recipient;
+	
+	@ManyToMany(mappedBy = "recievedMessages", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+	private Set<User> recipients;
 	
 	/**
 	 *  Many Messages to One User
