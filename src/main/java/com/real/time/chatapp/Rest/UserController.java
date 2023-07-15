@@ -124,7 +124,7 @@ class UserController {
 			user.setPassword(newUser.getPassword());
 			user.setRecievedMessages(newUser.getRecievedMessages());
 			user.setSentMessages(newUser.getSentMessages());
-			user.setUserName(newUser.getUserName());
+			user.setUserName(newUser.getUsername());
 			return user_repository.save(user);
 		}).orElseGet(() -> {
 			return user_repository.save(newUser);
