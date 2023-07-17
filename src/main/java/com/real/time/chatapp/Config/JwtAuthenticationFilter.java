@@ -6,6 +6,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -41,20 +42,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		//Now, we must extract the username
 		username = jwtService.extractUsername(jwt);
 		
-		//Check if the User is authenticated or not 
-		//If either of these are null, the user is not authenticated 
+		//If User is Already Authenticated, Do Not Need To Reset
 		if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+			//Fetch User Details From DB
 			UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-			//If the Token is Valid, We Update the SecurityContextHolder and send a request to the DispatcherServlet
+			//Validate JWT Token
+			//If Valid, Update SecurityCOntextHolder with Auth Token
 			if(jwtService.isTokenValid(jwt, userDetails)) {
+				//Needed by Spring and SecurityContextHolder to update our Security Context
 				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
 					userDetails,
-					//null authentication
+					//null credentials
 					null,
 					userDetails.getAuthorities()
 				);
+				//Set Details Based On our HTTP request
+				authToken.setDetails(
+						new WebAuthenticationDetailsSource().buildDetails(request)
+				);
+				//Update SecurityContextHolder
+				SecurityContextHolder.getContext().setAuthentication(authToken);
 			}
 		}
+		//Need to pass the hand for the next filters to be executed
+		filterChain.doFilter(request, response);
 	}
 
 }

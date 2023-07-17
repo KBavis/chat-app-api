@@ -1,4 +1,4 @@
-package com.real.time.chatapp.Rest;
+package com.real.time.chatapp.Repositories;
 
 import java.util.Date;
 import java.util.List;
