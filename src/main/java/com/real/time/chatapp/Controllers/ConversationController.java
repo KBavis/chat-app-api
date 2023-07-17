@@ -1,4 +1,4 @@
-package com.real.time.chatapp.Rest;
+package com.real.time.chatapp.Controllers;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -21,10 +21,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.real.time.chatapp.Assemblers.ConversationModelAssembler;
 import com.real.time.chatapp.Entities.Conversation;
 import com.real.time.chatapp.Entities.User;
 import com.real.time.chatapp.Exception.ConversationNotFoundException;
 import com.real.time.chatapp.Exception.UserNotFoundException;
+import com.real.time.chatapp.Repositories.ConversationRepository;
+import com.real.time.chatapp.Repositories.UserRepository;
 
 @RestController
 public class ConversationController {
@@ -45,7 +48,7 @@ public class ConversationController {
 	 * @return
 	 */
 	@GetMapping("/conversations")
-	CollectionModel<EntityModel<Conversation>> all() {
+	public CollectionModel<EntityModel<Conversation>> all() {
 		List<EntityModel<Conversation>> entityModels = conversationRepository.findAll().stream()
 				.map(conversationAssembler::toModel).collect(Collectors.toList());
 
@@ -60,7 +63,7 @@ public class ConversationController {
 	 * @return
 	 */
 	@GetMapping("/conversations/{id}")
-	EntityModel<Conversation> one(@PathVariable Long id) {
+	public EntityModel<Conversation> one(@PathVariable Long id) {
 		Conversation convo = conversationRepository.findById(id)
 				.orElseThrow(() -> new ConversationNotFoundException(id));
 		return conversationAssembler.toModel(convo);
