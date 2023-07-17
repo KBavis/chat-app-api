@@ -1,4 +1,4 @@
-package com.real.time.chatapp.Exception;
+package com.real.time.chatapp.Advice;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -6,12 +6,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.real.time.chatapp.Exception.UserNotFoundException;
+
 @ControllerAdvice
-public class UserNotInConversationAdvice {
+public class UserNotFoundAdvice {
 	@ResponseBody
-	@ExceptionHandler(UserNotInConversationException.class)
+	@ExceptionHandler(UserNotFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	String errMsg(UserNotInConversationException ex) {
+	String userNotFoundHandler(UserNotFoundException ex) {
 		return ex.getMessage();
 	}
 }
