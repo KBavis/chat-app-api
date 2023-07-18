@@ -8,16 +8,20 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.real.time.chatapp.Entities.Message;
+import com.real.time.chatapp.Entities.User;
 
 @Repository
 public interface MessageRepository extends JpaRepository<Message,Long>{
 	
-	@Query("SELECT m FROM Message m WHERE m.content LIKE %:content%") 
-	List<Message> findMessagesByContent(String content);
+	@Query("SELECT m FROM Message m WHERE :user MEMBER OF m.recipients")
+	List<Message> findMessagesByUser(User user);
 	
-	@Query("SELECT m FROM Message m WHERE m.sendDate >= :date")
-	List<Message> findMessagesByDate(Date date);
+	@Query("SELECT m FROM Message m WHERE m.content LIKE %:content% AND :user MEMBER OF m.recipients OR :user = m.sender") 
+	List<Message> findMessagesByContent(String content, User user);
 	
-	@Query("SELECT m FROM Message m WHERE m.isRead = false")
-	List<Message> findMessageByIsRead();
+	@Query("SELECT m FROM Message m WHERE m.sendDate >= :date AND :user MEMBER OF m.recipients OR :user = m.sender")
+	List<Message> findMessagesByDate(Date date, User user);
+	
+	@Query("SELECT m FROM Message m WHERE m.isRead = false AND :user MEMBER OF m.recipients")
+	List<Message> findMessageByIsRead(User user);
 }
