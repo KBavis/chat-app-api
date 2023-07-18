@@ -5,12 +5,14 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,8 +22,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.real.time.chatapp.Assemblers.ConversationModelAssembler;
+import com.real.time.chatapp.ControllerServices.AuthenticationService;
 import com.real.time.chatapp.Entities.Conversation;
 import com.real.time.chatapp.Entities.User;
 import com.real.time.chatapp.Exception.ConversationNotFoundException;
@@ -29,19 +33,15 @@ import com.real.time.chatapp.Exception.UserNotFoundException;
 import com.real.time.chatapp.Repositories.ConversationRepository;
 import com.real.time.chatapp.Repositories.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
+@RequiredArgsConstructor
 public class ConversationController {
-	private ConversationRepository conversationRepository;
-	private ConversationModelAssembler conversationAssembler;
-	private UserRepository userRepository;
-
-	public ConversationController(ConversationRepository conversationRepository,
-			ConversationModelAssembler conversationAssembler, UserRepository userRepository) {
-		this.conversationAssembler = conversationAssembler;
-		this.conversationRepository = conversationRepository;
-		this.userRepository = userRepository;
-	}
-
+	private final ConversationRepository conversationRepository;
+	private final ConversationModelAssembler conversationAssembler;
+	private final UserRepository userRepository;
+	private final AuthenticationService service; 
 	/**
 	 * Getting all of the apps conversations
 	 * 
@@ -49,12 +49,26 @@ public class ConversationController {
 	 */
 	@GetMapping("/conversations")
 	public CollectionModel<EntityModel<Conversation>> all() {
+		if(!service.validateAdmin()) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
+		}
 		List<EntityModel<Conversation>> entityModels = conversationRepository.findAll().stream()
 				.map(conversationAssembler::toModel).collect(Collectors.toList());
 
 		return CollectionModel.of(entityModels, linkTo(methodOn(ConversationController.class).all()).withSelfRel());
 
 	}
+	
+	@GetMapping("/userConversations")
+	public CollectionModel<EntityModel<Conversation>> getConversationByUser() {
+		User user = service.getUser();
+		List<EntityModel<Conversation>> entityModels = conversationRepository.findConversationsByUser(user).stream()
+				.map(conversationAssembler::toModel).collect(Collectors.toList());
+
+		return CollectionModel.of(entityModels, linkTo(methodOn(ConversationController.class).all()).withSelfRel());
+
+	}
+
 
 	/**
 	 * Fetching a conversation by ID
@@ -64,8 +78,12 @@ public class ConversationController {
 	 */
 	@GetMapping("/conversations/{id}")
 	public EntityModel<Conversation> one(@PathVariable Long id) {
+		User user = service.getUser();
 		Conversation convo = conversationRepository.findById(id)
 				.orElseThrow(() -> new ConversationNotFoundException(id));
+		if(!convo.getConversation_users().contains(user)) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
+		}
 		return conversationAssembler.toModel(convo);
 	}
 
@@ -78,7 +96,8 @@ public class ConversationController {
 	@GetMapping("/search/conversations")
 	CollectionModel<EntityModel<Conversation>> findConversationsByDate(
 			@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
-		List<EntityModel<Conversation>> entityModels = conversationRepository.findConversationsByDate(date).stream()
+		User user = service.getUser();
+		List<EntityModel<Conversation>> entityModels = conversationRepository.findConversationsByDate(date, user).stream()
 				.map(conversationAssembler::toModel).collect(Collectors.toList());
 
 		return CollectionModel.of(entityModels,
@@ -94,8 +113,8 @@ public class ConversationController {
 	@GetMapping("/search/conversations/{id}")
 	CollectionModel<EntityModel<Conversation>> findConversationsWithUser(@PathVariable Long id) {
 		User user = userRepository.findById(id).orElse(null);
-		
-		List<EntityModel<Conversation>> entityModels = conversationRepository.findConversationsByUser(user).stream()
+		User authUser = service.getUser();
+		List<EntityModel<Conversation>> entityModels = conversationRepository.findConversationsByUserAndAuthUser(user,authUser).stream()
 				.map(conversationAssembler::toModel).collect(Collectors.toList());
 		
 		return CollectionModel.of(entityModels, 
@@ -162,7 +181,9 @@ public class ConversationController {
 	 */
 	@PutMapping("/conversations/{conversationId}/{userId}")
 	ResponseEntity<?> addUserToConversation(@PathVariable Long conversationId, @PathVariable Long userId) {
-
+		if(!service.validateAdmin()) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
+		}
 		Conversation conversation = conversationRepository.findById(conversationId)
 				.orElseThrow(() -> new ConversationNotFoundException(conversationId));
 		User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
@@ -171,8 +192,39 @@ public class ConversationController {
 		EntityModel<Conversation> entityModel = conversationAssembler
 				.toModel(conversationRepository.save(conversation));
 		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
-
 	}
+	
+	/**
+	 * Leave a Conversation
+	 *  	- Delete conversation if no users remain
+	 * @param conversationId
+	 * @return
+	 */
+	@DeleteMapping("/conversation/leave/{conversationId}")
+	ResponseEntity<?> leaveConversation(@PathVariable Long conversationId) {
+		Conversation convo = conversationRepository.findById(conversationId).orElseThrow(() -> new ConversationNotFoundException(conversationId));
+		User user = service.getUser();
+		if(!convo.getConversation_users().contains(user)){
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
+		}
+		Set<Conversation> userConversation = user.getList_conversations();
+		Set<User> conversationUsers = convo.getConversation_users();
+		userConversation.remove(convo);
+		conversationUsers.remove(user);
+		convo.setConversation_users(conversationUsers);
+		user.setList_conversations(userConversation);
+		
+		if(userConversation.size() == 0) {
+			conversationRepository.deleteById(conversationId);
+		} else {
+			convo.setNumUsers(convo.getNumUsers() - 1);
+			conversationRepository.save(convo);
+		}
+		userRepository.save(user);
+		
+		return ResponseEntity.noContent().build();
+	}
+	
 
 	/**
 	 * Delete a conversation
@@ -182,6 +234,9 @@ public class ConversationController {
 	 */
 	@DeleteMapping("/conversations/{conversationId}")
 	ResponseEntity<?> deleteConversation(@PathVariable Long conversationId) {
+		if(!service.validateAdmin()) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
+		}
 		conversationRepository.deleteById(conversationId);
 		return ResponseEntity.noContent().build();
 	}
