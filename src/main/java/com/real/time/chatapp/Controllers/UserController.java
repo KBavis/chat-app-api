@@ -45,11 +45,8 @@ public class UserController {
 
 	private final UserRepository user_repository;
 	private final UserModelAssembler user_assembler;
-	private final ConversationRepository conversation_repository;
-	private final ConversationModelAssembler conversation_assembler;
 	private final MessageRepository message_repository;
 	private final AuthenticationService service;
-	private final AuthenticationManager authenticationManager;
 
 	/**
 	 * Fetching all users

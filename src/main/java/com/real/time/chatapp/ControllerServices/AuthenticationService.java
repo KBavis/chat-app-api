@@ -1,6 +1,8 @@
 package com.real.time.chatapp.ControllerServices;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -16,10 +18,14 @@ import org.springframework.stereotype.Service;
 import com.real.time.chatapp.Assemblers.UserModelAssembler;
 import com.real.time.chatapp.Auth.AuthenticationRequest;
 import com.real.time.chatapp.Config.JwtService;
+import com.real.time.chatapp.Entities.Conversation;
+import com.real.time.chatapp.Entities.Message;
 import com.real.time.chatapp.Entities.Role;
 import com.real.time.chatapp.Entities.User;
-import com.real.time.chatapp.Exception.UserNotAuthenticatedException;
+import com.real.time.chatapp.Exception.MessageNotFoundException;
+import com.real.time.chatapp.Exception.UserNotFoundException;
 import com.real.time.chatapp.Exception.UsernameTakenException;
+import com.real.time.chatapp.Repositories.MessageRepository;
 import com.real.time.chatapp.Repositories.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -29,16 +35,17 @@ import lombok.RequiredArgsConstructor;
 public class AuthenticationService {
 	
 	
-	private final UserRepository repository;
+	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final UserModelAssembler userAssembler;
 	private final JwtService jwtService;
 	private final AuthenticationManager authenticationManager;
-
+	private final MessageRepository messageRepository;
+	
 	//Register A User
 	public ResponseEntity<?> register(User user) {
 		// Build user Based On Request
-		List<User> users = repository.searchUsersByUserName(user.getUsername());
+		List<User> users = userRepository.searchUsersByUserName(user.getUsername());
 		if(users != null) {
 			for(User u: users) {
 				if(u.getUsername().trim().equals(user.getUsername())) {
@@ -49,7 +56,7 @@ public class AuthenticationService {
 		var encodedUser = User.builder().firstName(user.getFirstName()).lastName(user.getLastName())
 				.userName(user.getUsername()).password(passwordEncoder.encode(user.getPassword())).role(Role.USER)
 				.build();
-		repository.save(encodedUser);
+		userRepository.save(encodedUser);
 		EntityModel<User> entityModel = userAssembler.toModel(encodedUser);
 		var jwtToken = jwtService.generateToken(user);
 		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
@@ -61,7 +68,7 @@ public class AuthenticationService {
 	//Authenticate a User
 	public ResponseEntity<?> authenticate(AuthenticationRequest request) {
 		authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-		var user = repository.findByUserName(request.getUsername()).orElseThrow(() -> new UserNotAuthenticatedException(request.getUsername()));
+		var user = userRepository.findByUserName(request.getUsername()).orElseThrow(() -> new UserNotFoundException(request.getUsername()));
 		var jwtToken = jwtService.generateToken(user);
 		EntityModel<User> entityModel = userAssembler.toModel(user);
 		return ResponseEntity.ok()
@@ -78,5 +85,49 @@ public class AuthenticationService {
 		}
 		return true;
 	}
+	
+	//Validating A User Is An Admin
+	public boolean validateAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName().trim();
+        var user = userRepository.findByUserName(userName).orElseThrow(() -> new UserNotFoundException(userName));
+        if(user.getRole() == Role.ADMIN) {
+        	return true;
+        }
+        return false;
+	}
+
+	public boolean validateMessage(Long id) {
+		Message message = messageRepository.findById(id).orElseThrow(() -> new MessageNotFoundException(id));
+		User sender = message.getSender();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName().trim();
+        if(!userName.equals(sender.getUsername())) {
+        	return false;
+        }
+        return true;
+	}
+
+	public boolean validateUserConversation(Conversation conversation) {
+		Set<User> users = conversation.getConversation_users();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName().trim();
+        for(User user: users) {
+        	if(user.getUsername().equals(userName)) {
+        		return true;
+        	}
+        }
+        return false;
+	}
+
+	public User getUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName().trim();
+        Optional<User> user = userRepository.findByUserName(userName);
+        User foundUser = user.orElseThrow(() -> new UserNotFoundException(userName));
+        return foundUser;
+	}
+
+	
 
 }
