@@ -1,5 +1,6 @@
 package com.real.time.chatapp.ControllerServices;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import com.real.time.chatapp.Assemblers.UserModelAssembler;
 import com.real.time.chatapp.Auth.AuthenticationRequest;
+import com.real.time.chatapp.Auth.AuthenticationResponse;
+import com.real.time.chatapp.Auth.RegisterRequest;
 import com.real.time.chatapp.Config.JwtService;
 import com.real.time.chatapp.Entities.Conversation;
 import com.real.time.chatapp.Entities.Message;
@@ -37,44 +40,10 @@ public class AuthenticationService {
 	
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
-	private final UserModelAssembler userAssembler;
 	private final JwtService jwtService;
 	private final AuthenticationManager authenticationManager;
 	private final MessageRepository messageRepository;
-	
-	//Register A User
-	public ResponseEntity<?> register(User user) {
-		// Build user Based On Request
-		List<User> users = userRepository.searchUsersByUserName(user.getUsername());
-		if(users != null) {
-			for(User u: users) {
-				if(u.getUsername().trim().equals(user.getUsername())) {
-					throw new UsernameTakenException(user.getUsername());
-				}
-			}	
-		}
-		var encodedUser = User.builder().firstName(user.getFirstName()).lastName(user.getLastName())
-				.userName(user.getUsername()).password(passwordEncoder.encode(user.getPassword())).role(Role.USER)
-				.build();
-		userRepository.save(encodedUser);
-		EntityModel<User> entityModel = userAssembler.toModel(encodedUser);
-		var jwtToken = jwtService.generateToken(user);
-		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
-				.header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken).body(entityModel);
 
-	}
-	
-	//TODO Registering/Authenticating an Admin User
-	//Authenticate a User
-	public ResponseEntity<?> authenticate(AuthenticationRequest request) {
-		authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-		var user = userRepository.findByUserName(request.getUsername()).orElseThrow(() -> new UserNotFoundException(request.getUsername()));
-		var jwtToken = jwtService.generateToken(user);
-		EntityModel<User> entityModel = userAssembler.toModel(user);
-		return ResponseEntity.ok()
-		        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken)
-		        .body(entityModel);
-	}
 	
 	//Validate A User
 	public boolean validateUser(User user) {
@@ -126,6 +95,40 @@ public class AuthenticationService {
         Optional<User> user = userRepository.findByUserName(userName);
         User foundUser = user.orElseThrow(() -> new UserNotFoundException(userName));
         return foundUser;
+	}
+
+	public AuthenticationResponse register(RegisterRequest request) {
+		var user = User.builder()
+				.firstName(request.getFirstname())
+				.lastName(request.getLastname())
+				.userName(request.getUsername())
+				.password(passwordEncoder.encode(request.getPassword()))
+				.role(Role.USER)
+				.build();
+		userRepository.save(user);
+		
+		var jwtToken = jwtService.generateToken(user);
+		return AuthenticationResponse.builder()
+				.token(jwtToken)
+				.build();
+	}
+	
+	public AuthenticationResponse authenticate(AuthenticationRequest request) {
+		authenticationManager.authenticate(
+				new UsernamePasswordAuthenticationToken(
+					request.getUsername(),
+					request.getPassword()
+					)
+				);
+		
+		var user = userRepository.findByUserName(request.getUsername())
+				.orElseThrow(() -> new UserNotFoundException(request.getUsername()));
+		
+		var jwtToken = jwtService.generateToken(user);
+		return AuthenticationResponse.builder()
+				.token(jwtToken)
+				.build();
+		
 	}
 
 	

@@ -106,29 +106,6 @@ public class UserController {
 	}
 	
 	/**
-	 * Register a User 
-	 * 
-	 * @param user
-	 * @return
-	 */
-	@PostMapping("/register")
-	ResponseEntity<?> register(@RequestBody User user) {
-		return service.register(user);
-	}
-
-	
-	/**
-	 * Authenticate a User 
-	 * 
-	 * @param request
-	 * @return
-	 */
-	@PostMapping("/authenticate")
-	ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest request){
-		return service.authenticate(request);
-	}
-
-	/**
 	 * Updating a user
 	 * 
 	 * @param newUser
