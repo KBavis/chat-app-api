@@ -128,10 +128,10 @@ public class ConversationController {
 	 * @param userTwoId
 	 * @return
 	 */
-	@PostMapping("/conversations/{userOneId}/{userTwoId}")
-	ResponseEntity<?> createConversationBetweenUsers(@PathVariable Long userOneId, @PathVariable Long userTwoId) {
-		User userOne = userRepository.findById(userOneId).orElseThrow(() -> new UserNotFoundException(userOneId));
-		User userTwo = userRepository.findById(userTwoId).orElseThrow(() -> new UserNotFoundException(userTwoId));
+	@PostMapping("/conversations/{userId}")
+	ResponseEntity<?> createConversationBetweenUsers(@PathVariable Long userId) {
+		User userOne = service.getUser();
+		User userTwo = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
 		Conversation conversation = new Conversation();
 		conversation.getConversation_users().add(userOne);
