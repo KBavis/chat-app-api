@@ -6,6 +6,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 
 @SpringBootApplication
+@ComponentScan
 public class ChatAppApplication {
 
 	public static void main(String[] args) {
