@@ -2,6 +2,7 @@ package com.real.time.chatapp.Auth;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -36,7 +37,7 @@ public class LoadAdmin {
         String adminPassword = properties.getProperty("admin.password");
 		return args -> {
 			Long id = (long) 0;
-			if(userRepository.findByUserName("AdminUser") == null) {
+			if(!userRepository.findByUserName("AdminUser").isPresent()) {
 				User adminUser = new User(id, "AdminUser","Admin", "User", passwordEncoder.encode(adminPassword), Role.ADMIN, null, null, null );
 				log.info(userRepository.save(adminUser) + " saved.");
 				log.info("Database initialized.");

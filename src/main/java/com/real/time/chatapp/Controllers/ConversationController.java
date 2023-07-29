@@ -26,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.real.time.chatapp.Assemblers.ConversationModelAssembler;
 import com.real.time.chatapp.ControllerServices.AuthenticationService;
+import com.real.time.chatapp.DTO.ConversationDTO;
 import com.real.time.chatapp.Entities.Conversation;
 import com.real.time.chatapp.Entities.User;
 import com.real.time.chatapp.Exception.ConversationNotFoundException;
@@ -97,6 +98,7 @@ public class ConversationController {
 	CollectionModel<EntityModel<Conversation>> findConversationsByDate(
 			@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
 		User user = service.getUser();
+		
 		List<EntityModel<Conversation>> entityModels = conversationRepository.findConversationsByDate(date, user).stream()
 				.map(conversationAssembler::toModel).collect(Collectors.toList());
 
@@ -132,11 +134,14 @@ public class ConversationController {
 	ResponseEntity<?> createConversationBetweenUsers(@PathVariable Long userId) {
 		User userOne = service.getUser();
 		User userTwo = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-
+		
 		Conversation conversation = new Conversation();
 		conversation.getConversation_users().add(userOne);
 		conversation.getConversation_users().add(userTwo);
 		conversation.setNumUsers(2);
+		
+		if(userOne.getList_conversations() == null) System.out.println("UserOne Conversations Are NULL [-]");
+		if(userTwo.getList_conversations() == null) System.out.println("UserTwo Conversations Are NULL [-]");
 
 		userOne.getList_conversations().add(conversation);
 		userTwo.getList_conversations().add(conversation);
@@ -154,22 +159,33 @@ public class ConversationController {
 	 * @return
 	 */
 	@PutMapping("/conversation/{conversationId}")
-	ResponseEntity<?> updateConversation(@PathVariable Long conversationId, @RequestBody Conversation newConversation) {
-		Conversation updatedConversation = conversationRepository.findById(conversationId).map(conversation -> {
-			conversation.setConversation_id(newConversation.getConversation_id());
-			conversation.setConversation_users(newConversation.getConversation_users());
-			conversation.setConversationStart(newConversation.getConversationStart());
-			conversation.setMessages(newConversation.getMessages());
-			conversation.setNumUsers(newConversation.getNumUsers());
-			return conversationRepository.save(conversation);
-		}).orElseGet(() -> {
-			newConversation.setConversation_id(conversationId);
-			return conversationRepository.save(newConversation);
-		});
+	ResponseEntity<?> updateConversation(@PathVariable Long conversationId, @RequestBody ConversationDTO newConversationDTO) {
+//		Conversation updatedConversation = conversationRepository.findById(conversationId).map(conversation -> {
+//			conversation.setConversation_id(newConversation.getConversation_id());
+//			conversation.setConversation_users(newConversation.getConversation_users());
+//			conversation.setConversationStart(newConversation.getConversationStart());
+//			conversation.setMessages(newConversation.getMessages());
+//			conversation.setNumUsers(newConversation.getNumUsers());
+//			return conversationRepository.save(conversation);
+//		}).orElseGet(() -> {
+//			newConversation.setConversation_id(conversationId);
+//			return conversationRepository.save(newConversation);
+//		});
+//
+//		EntityModel<Conversation> entityModel = conversationAssembler.toModel(updatedConversation);
+//		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
+	    Conversation existingConversation = conversationRepository.findById(conversationId)
+	            .orElseThrow(() -> new ConversationNotFoundException(conversationId));
 
-		EntityModel<Conversation> entityModel = conversationAssembler.toModel(updatedConversation);
-		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
+	    // Copy relevant fields from ConversationDTO to existingConversation
+	    existingConversation.setNumUsers(newConversationDTO.getNumUsers());
+	    existingConversation.setConversationStart(newConversationDTO.getConversationStart());
+	    existingConversation.setMessages(newConversationDTO.getMessages());
 
+	    Conversation updatedConversation = conversationRepository.save(existingConversation);
+
+	    EntityModel<Conversation> entityModel = conversationAssembler.toModel(updatedConversation);
+	    return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
 	}
 
 	/**
@@ -181,7 +197,9 @@ public class ConversationController {
 	 */
 	@PutMapping("/conversations/{conversationId}/{userId}")
 	ResponseEntity<?> addUserToConversation(@PathVariable Long conversationId, @PathVariable Long userId) {
-		if(!service.validateAdmin()) {
+		Conversation convo = conversationRepository.findById(conversationId).orElseThrow(() -> new ConversationNotFoundException(conversationId));
+		User currentUser = service.getUser();
+		if(!convo.getConversation_users().contains(currentUser)){
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
 		}
 		Conversation conversation = conversationRepository.findById(conversationId)

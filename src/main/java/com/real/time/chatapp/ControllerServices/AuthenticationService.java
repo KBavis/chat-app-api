@@ -1,14 +1,10 @@
 package com.real.time.chatapp.ControllerServices;
 
-import java.net.URI;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.IanaLinkRelations;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,7 +12,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.real.time.chatapp.Assemblers.UserModelAssembler;
 import com.real.time.chatapp.Auth.AuthenticationRequest;
 import com.real.time.chatapp.Auth.AuthenticationResponse;
 import com.real.time.chatapp.Auth.RegisterRequest;
@@ -36,7 +31,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
-	
 	
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
@@ -98,15 +92,21 @@ public class AuthenticationService {
 	}
 
 	public AuthenticationResponse register(RegisterRequest request) {
+		//Check if username already exists
+		Optional<User> optionalUser = userRepository.findByUserName(request.getUsername());
+		User u = optionalUser.orElse(null);
+		if(u != null) throw new UsernameTakenException(request.getUsername());
 		var user = User.builder()
 				.firstName(request.getFirstname())
 				.lastName(request.getLastname())
 				.userName(request.getUsername())
 				.password(passwordEncoder.encode(request.getPassword()))
 				.role(Role.USER)
+				.list_conversations(new HashSet<>())
+				.recievedMessages(new HashSet<>())
 				.build();
-		userRepository.save(user);
 		
+		userRepository.save(user);
 		var jwtToken = jwtService.generateToken(user);
 		return AuthenticationResponse.builder()
 				.token(jwtToken)
