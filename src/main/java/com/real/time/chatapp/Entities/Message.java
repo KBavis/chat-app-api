@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PreRemove;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -50,6 +51,13 @@ public class Message {
 	@ManyToOne
 	@JoinColumn(name = "conversation_id", referencedColumnName = "conversation_id")
 	private Conversation conversation;
+	
+	@PreRemove
+	private void preRemove() {
+		for(User user: recipients) {
+			user.getRecievedMessages().remove(this);
+		}
+	}
 	
 
 	

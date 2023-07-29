@@ -1,9 +1,11 @@
-package com.real.time.chatapp.Rest;
+package com.real.time.chatapp.Assemblers;
 
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
+import com.real.time.chatapp.Controllers.ConversationController;
 import com.real.time.chatapp.Entities.Conversation;
 import com.real.time.chatapp.Entities.Message;
 

@@ -1,4 +1,4 @@
-package com.real.time.chatapp.Rest;
+package com.real.time.chatapp.Controllers;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -6,6 +6,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -13,6 +14,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +24,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.real.time.chatapp.Assemblers.MessageModelAssembler;
+import com.real.time.chatapp.ControllerServices.AuthenticationService;
 import com.real.time.chatapp.Entities.Conversation;
 import com.real.time.chatapp.Entities.Message;
 import com.real.time.chatapp.Entities.User;
@@ -30,8 +35,14 @@ import com.real.time.chatapp.Exception.ConversationNotFoundException;
 import com.real.time.chatapp.Exception.MessageNotFoundException;
 import com.real.time.chatapp.Exception.UserNotFoundException;
 import com.real.time.chatapp.Exception.UserNotInConversationException;
+import com.real.time.chatapp.Repositories.ConversationRepository;
+import com.real.time.chatapp.Repositories.MessageRepository;
+import com.real.time.chatapp.Repositories.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
+@RequiredArgsConstructor
 public class MessageController {
 	/**
 	 * \ TODO: Consider adding funcitonality to a MessageService class to decluter
@@ -41,27 +52,38 @@ public class MessageController {
 	private final MessageModelAssembler messageAssembler;
 	private final UserRepository userRepository;
 	private final ConversationRepository conversationRepository;
-
-	MessageController(MessageRepository messageRepo, MessageModelAssembler msgAssembler, UserRepository userRepository,
-			ConversationRepository conversationRepository) {
-		this.messageRepository = messageRepo;
-		this.messageAssembler = msgAssembler;
-		this.conversationRepository = conversationRepository;
-		this.userRepository = userRepository;
-	}
-
+	private final AuthenticationService service;
 	/**
 	 * Get all messages
 	 * 
 	 * @return
 	 */
 	@GetMapping("/messages")
-	CollectionModel<EntityModel<Message>> all() {
+	public CollectionModel<EntityModel<Message>> all() {
+		if(!service.validateAdmin()) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
+		}
 		List<EntityModel<Message>> messages = messageRepository.findAll().stream().map(messageAssembler::toModel)
 				.collect(Collectors.toList());
 
 		return CollectionModel.of(messages, linkTo(methodOn(MessageController.class).all()).withSelfRel());
 	}
+
+	/**
+	 *  Get all messages for authenticated user 
+	 *  
+	 * @param userId
+	 * @return
+	 */
+	@GetMapping("/userMessages")
+	public CollectionModel<EntityModel<Message>> getUserMessages() {
+		User user = service.getUser();
+		List<EntityModel<Message>> messages = messageRepository.findMessagesByUser(user).stream().map(messageAssembler::toModel)
+				.collect(Collectors.toList());
+
+		return CollectionModel.of(messages, linkTo(methodOn(MessageController.class).all()).withSelfRel());
+	}
+
 
 	/**
 	 * Get a specific message
@@ -70,7 +92,7 @@ public class MessageController {
 	 * @return
 	 */
 	@GetMapping("/messages/{id}")
-	EntityModel<Message> one(@PathVariable Long id) {
+	public EntityModel<Message> one(@PathVariable Long id) {
 		Message msg = messageRepository.findById(id).orElseThrow(() -> new MessageNotFoundException(id));
 		return messageAssembler.toModel(msg);
 	}
@@ -85,6 +107,9 @@ public class MessageController {
 	CollectionModel<EntityModel<Message>> getConversationMessages(@PathVariable Long id) {
 		Conversation conversation = conversationRepository.findById(id)
 				.orElseThrow(() -> new ConversationNotFoundException(id));
+		if(!service.validateUserConversation(conversation)) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
+		}
 		List<Message> messages = conversation.getMessages();
 		List<EntityModel<Message>> entityModels = messages.stream().map(messageAssembler::toModel)
 				.collect(Collectors.toList());
@@ -101,7 +126,8 @@ public class MessageController {
 	 */
 	@GetMapping("/search/messages/content")
 	CollectionModel<EntityModel<Message>> searchMessagesByContent(@RequestParam("content") String content) {
-		List<EntityModel<Message>> entityModels = messageRepository.findMessagesByContent(content).stream()
+		User user = service.getUser();
+		List<EntityModel<Message>> entityModels = messageRepository.findMessagesByContent(content,user).stream()
 				.map(messageAssembler::toModel).collect(Collectors.toList());
 
 		return CollectionModel.of(entityModels,
@@ -117,7 +143,8 @@ public class MessageController {
 	@GetMapping("/search/messages/date")
 	CollectionModel<EntityModel<Message>> searchMessagesByDateSent(
 			@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
-		List<EntityModel<Message>> entityModels = messageRepository.findMessagesByDate(date).stream()
+		User user = service.getUser();
+		List<EntityModel<Message>> entityModels = messageRepository.findMessagesByDate(date,user).stream()
 				.map(messageAssembler::toModel).collect(Collectors.toList());
 
 		return CollectionModel.of(entityModels,
@@ -131,7 +158,8 @@ public class MessageController {
 	 */
 	@GetMapping("/search/messages/read")
 	CollectionModel<EntityModel<Message>> searchMessagesByIsRead() {
-		List<EntityModel<Message>> entityModels = messageRepository.findMessageByIsRead().stream()
+		User user = service.getUser();
+		List<EntityModel<Message>> entityModels = messageRepository.findMessageByIsRead(user).stream()
 				.map(messageAssembler::toModel).collect(Collectors.toList());
 
 		return CollectionModel.of(entityModels,
@@ -139,23 +167,18 @@ public class MessageController {
 	}
 
 	/**
-	 * Add a new messages TODO: Update this function to create a new message by
-	 * sending it to a conversation - All Users within this Conversations will
-	 * Recieve this Message - Endpoin: /messages/{conversationId}/{senderId} -->
-	 * where senderId, is the userID of the sende
 	 * 
 	 * @param message
 	 * @return
 	 */
-	@PostMapping("/messages/{conversationId}/{senderId}")
-	ResponseEntity<?> newMessage(@RequestBody Message message, @PathVariable Long senderId,
+	@PostMapping("/messages/{conversationId}")
+	ResponseEntity<?> newMessage(@RequestBody Message message,
 			@PathVariable Long conversationId) {
-		User sender = userRepository.findById(senderId).orElseThrow(() -> new UserNotFoundException(senderId));
-
+		User sender = service.getUser();
 		Conversation conversation = conversationRepository.findById(conversationId)
 				.orElseThrow(() -> new ConversationNotFoundException(conversationId));
 		if (!conversation.getConversation_users().contains(sender)) {
-			throw new UserNotInConversationException(senderId, conversationId);
+			throw new UserNotInConversationException(sender.getUser_id(), conversationId);
 		}
 		
 		//Set Recipients of Message As All Conversation Users Other Than Sender 
@@ -226,6 +249,9 @@ public class MessageController {
 	 */
 	@DeleteMapping("/messages/{id}")
 	ResponseEntity<?> deleteMessage(@PathVariable Long id) {
+		if(!service.validateMessage(id)) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You are not authorized to perform this action.");
+		}
 		messageRepository.deleteById(id);
 		return ResponseEntity.noContent().build();
 	}
