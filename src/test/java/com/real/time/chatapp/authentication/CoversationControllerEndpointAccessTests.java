@@ -68,11 +68,215 @@ public class CoversationControllerEndpointAccessTests {
 		adminPassword = properties.getProperty("admin.password");
 	}
 
+	
+	//************************************************
+	//----------ACCESS RETURNS FORBIDDEN TEST CASES----------
+	//************************************************
+	
 	@Test
 	void test_conversation_returnsForbidden() throws Exception {
 		mockMvc.perform(get("/conversations")).andExpect(status().isForbidden());
 	}
+	
+	@Test
+	void test_conversation_returnsUnauthorized() throws Exception {
+		testHelper.signUp("test1", "password");
+		AuthenticationResponse authResponse = testHelper.loginAndReturnToken("test1", "password");
+		mockMvc.perform(get("/conversations").header("Authorization", "Bearer " + authResponse.getToken())).andExpect(status().isUnauthorized());
+	}
+	
+	@Test
+	@Transactional
+	void test_userConversation_returnsForbidden() throws Exception {
 
+		mockMvc.perform(get("/userConversations"))
+				.andExpect(status().isForbidden());
+	}
+	
+	@Test
+	@Transactional
+	void test_conversationById_returnsForbidden() throws Exception {
+		testHelper.signUp("test1", "password");
+		testHelper.signUp("test2", "password");
+		AuthenticationResponse authResponse = testHelper.loginAndReturnToken("test1", "password");
+
+		long conversationId = createMockConversation(authResponse.getToken(), "test2");
+		mockMvc.perform(
+				get("/conversations/" + conversationId))
+				.andExpect(status().isForbidden());
+	}
+	
+	
+	@Test
+	@Transactional
+	void test_conversationById_returnsUnauthorized() throws Exception {
+		testHelper.signUp("test1", "password");
+		testHelper.signUp("test2", "password");
+		testHelper.signUp("test3", "password");
+		AuthenticationResponse wrongAuthResponse = testHelper.loginAndReturnToken("test3", "password");
+		AuthenticationResponse authResponse = testHelper.loginAndReturnToken("test1", "password");
+		long conversationId = createMockConversation(authResponse.getToken(), "test2");
+		mockMvc.perform(
+				get("/conversations/" + conversationId)
+				.header("Authorization", "Bearer " + wrongAuthResponse.getToken()))
+				.andExpect(status().isUnauthorized());
+	}
+	
+	@Test
+	@Transactional
+	void test_searchConversationsByDates_returnsForbidden() throws Exception {
+		testHelper.signUp("testUser1", "password");
+		testHelper.signUp("testUser2", "password");
+		AuthenticationResponse response = testHelper.loginAndReturnToken("testUser1", "password");
+
+		createMockConversation(response.getToken(), "testUser2");
+
+		LocalDate date = LocalDate.now();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+		mockMvc.perform(get("/search/conversations?date=" + date.format(formatter))).andExpect(status().isForbidden());
+	}
+	
+	@Test
+	@Transactional
+	void test_searchConversationsByUser_returnsForbidden() throws Exception {
+		testHelper.signUp("testUser1", "password");
+		testHelper.signUp("testUser2", "password");
+		AuthenticationResponse response = testHelper.loginAndReturnToken("testUser1", "password");
+
+		createMockConversation(response.getToken(), "testUser2");
+
+		User user = userRepository.findByUserName("testUser2")
+				.orElseThrow(() -> new UserNotFoundException("testUser2"));
+		Long userId = user.getUser_id();
+
+		mockMvc.perform(get("/search/conversations/" + userId))
+				.andExpect(status().isForbidden());
+	}
+	
+	@Test
+	@Transactional
+	void test_createConversation_returnsForbidden() throws Exception {
+		testHelper.signUp("testUser1", "password");
+		testHelper.signUp("testUser2", "password");
+
+		User userTwo = userRepository.findByUserName("testUser2").orElseThrow(() -> new UserNotFoundException("test2"));
+
+		mockMvc.perform(
+				post("/conversations/" + userTwo.getUser_id()))
+				.andExpect(status().isForbidden());
+	}
+	
+	@Test
+	@Transactional
+	void test_updateConversation_returnsForbidden() throws Exception {
+		testHelper.signUp("testUser1", "password");
+		testHelper.signUp("testUser2", "password");
+		AuthenticationResponse response = testHelper.loginAndReturnToken("testUser1", "password");
+		Long conversationId = createMockConversation(response.getToken(), "testUser2");
+		
+		ConversationDTO conversationDTO = new ConversationDTO();
+		conversationDTO.setConversationStart(new Date());
+		conversationDTO.setMessages(new ArrayList<>());
+		conversationDTO.setNumUsers(0);
+		
+		mockMvc.perform(put("/conversation/" + conversationId)
+				.content(new ObjectMapper().writeValueAsString(conversationDTO)).contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isForbidden());
+	}
+	
+	@Test
+	@Transactional
+	void test_addUserToConversation_returnsForbidden() throws Exception {
+		testHelper.signUp("testUser1", "password");
+		testHelper.signUp("testUser2", "password");
+		AuthenticationResponse response = testHelper.loginAndReturnToken("testUser1", "password");
+		Long conversationId = createMockConversation(response.getToken(), "testUser2");
+		
+		testHelper.signUp("testUser3", "password");
+		User user = userRepository.findByUserName("testUser3").orElseThrow(() -> new UserNotFoundException("testUser3"));
+		
+		
+		mockMvc.perform(
+				put("/conversations/" + conversationId + "/" +  user.getUser_id()))
+				.andExpect(status().isForbidden());
+	}
+	
+	@Test
+	@Transactional
+	void test_addUserToConversation_returnsUnauthorized() throws Exception {
+		testHelper.signUp("testUser1", "password");
+		testHelper.signUp("testUser2", "password");
+		AuthenticationResponse response = testHelper.loginAndReturnToken("testUser1", "password");
+		Long conversationId = createMockConversation(response.getToken(), "testUser2");
+		
+		testHelper.signUp("testUser3", "password");
+		User user = userRepository.findByUserName("testUser3").orElseThrow(() -> new UserNotFoundException("testUser3"));
+		AuthenticationResponse authResponse = testHelper.loginAndReturnToken("testUser3", "password");
+		
+		mockMvc.perform(
+				put("/conversations/" + conversationId + "/" +  user.getUser_id())
+				.header("Authorization", "Bearer " + authResponse.getToken()))
+				.andExpect(status().isUnauthorized());
+	}
+	
+	@Test
+	@Transactional
+	void test_leaveConversation_returnsForbidden() throws Exception {
+		testHelper.signUp("testUser1", "password");
+		testHelper.signUp("testUser2", "password");
+		AuthenticationResponse response = testHelper.loginAndReturnToken("testUser1", "password");
+		Long conversationId = createMockConversation(response.getToken(), "testUser2");
+		
+		mockMvc.perform(
+				delete("/conversation/leave/" + conversationId))
+				.andExpect(status().isForbidden());
+	}
+	
+	@Test
+	@Transactional
+	void test_leaveConversation_returnsUnauthorized() throws Exception {
+		testHelper.signUp("testUser1", "password");
+		testHelper.signUp("testUser2", "password");
+		AuthenticationResponse response = testHelper.loginAndReturnToken("testUser1", "password");
+		Long conversationId = createMockConversation(response.getToken(), "testUser2");
+		
+		testHelper.signUp("testUser3", "password");
+		AuthenticationResponse authResponse = testHelper.loginAndReturnToken("testUser3", "password");
+		mockMvc.perform(
+				delete("/conversation/leave/" + conversationId)
+				.header("Authorization", "Bearer " + authResponse.getToken()))
+				.andExpect(status().isUnauthorized());
+	}
+	
+	
+	@Test
+	@Transactional
+	void test_deleteConversation_returnsUnauthorized() throws Exception {
+		testHelper.signUp("testUser1", "password");
+		testHelper.signUp("testUser2", "password");
+		AuthenticationResponse responseOne = testHelper.loginAndReturnToken("testUser1", "password");
+		Long conversationId = createMockConversation(responseOne.getToken(), "testUser2");
+		mockMvc.perform(delete("/conversations/" + conversationId).header("Authorization", "Bearer " + responseOne.getToken()))
+				.andExpect(status().isUnauthorized());
+	}
+	
+	@Test
+	@Transactional
+	void test_deleteConversation_returnsForbidden() throws Exception {
+		testHelper.signUp("testUser1", "password");
+		testHelper.signUp("testUser2", "password");
+		AuthenticationResponse responseOne = testHelper.loginAndReturnToken("testUser1", "password");
+		Long conversationId = createMockConversation(responseOne.getToken(), "testUser2");
+		mockMvc.perform(delete("/conversations/" + conversationId))
+				.andExpect(status().isForbidden());
+	}
+	
+	
+	
+	//********************************************************
+	//----------ACCESS RETURNS OK/CREATED TEST CASES----------
+	//********************************************************
 	@Test
 	void test_conversation_returnsOk() throws Exception {
 		AuthenticationResponse response = testHelper.loginAndReturnToken("AdminUser", adminPassword);
