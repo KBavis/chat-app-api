@@ -12,28 +12,21 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.real.time.chatapp.Assemblers.ConversationModelAssembler;
 import com.real.time.chatapp.Assemblers.UserModelAssembler;
-import com.real.time.chatapp.Auth.AuthenticationRequest;
 import com.real.time.chatapp.ControllerServices.AuthenticationService;
+import com.real.time.chatapp.DTO.UserDTO;
 import com.real.time.chatapp.Entities.Message;
 import com.real.time.chatapp.Entities.Role;
 import com.real.time.chatapp.Entities.User;
 import com.real.time.chatapp.Exception.UserNotFoundException;
-import com.real.time.chatapp.Repositories.ConversationRepository;
 import com.real.time.chatapp.Repositories.MessageRepository;
 import com.real.time.chatapp.Repositories.UserRepository;
 
@@ -113,7 +106,7 @@ public class UserController {
 	 * @return
 	 */
 	@PutMapping("users/{id}")
-	ResponseEntity<?> updateUser(@RequestBody User newUser, @PathVariable Long id) {
+	ResponseEntity<?> updateUser(@RequestBody UserDTO newUser, @PathVariable Long id) {
 		User user = user_repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 		if(!service.validateUser(user)) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You are not authorized to perform this action.");
@@ -121,9 +114,7 @@ public class UserController {
 		user.setFirstName(newUser.getFirstName());
 		user.setLastName(newUser.getLastName());
 		user.setPassword(newUser.getPassword());
-		user.setRecievedMessages(newUser.getRecievedMessages());
-		user.setRole(Role.USER);
-		user.setSentMessages(newUser.getSentMessages());
+		user.setRole(newUser.getRole());
 		user.setUserName(newUser.getUsername());
 		User updatedUser = user_repository.save(user);
 		
@@ -152,12 +143,14 @@ public class UserController {
 		if(!service.validateUser(user)) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You are not authorized to perform this action.");
 		}
-		for (Message msg : user.getSentMessages()) {
-			Set<User> recipients = msg.getRecipients();
-			for (User current : recipients) {
-				current.getRecievedMessages().remove(msg);
-			}
-			message_repository.deleteById(msg.getMessage_id());
+		if(user.getSentMessages() != null) {
+			for (Message msg : user.getSentMessages()) {
+				Set<User> recipients = msg.getRecipients();
+				for (User current : recipients) {
+					current.getRecievedMessages().remove(msg);
+				}
+				message_repository.deleteById(msg.getMessage_id());
+			}	
 		}
 		user_repository.deleteById(id);
 		return ResponseEntity.noContent().build();

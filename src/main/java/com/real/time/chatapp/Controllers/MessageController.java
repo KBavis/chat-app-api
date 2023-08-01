@@ -3,10 +3,10 @@ package com.real.time.chatapp.Controllers;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,13 +28,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.real.time.chatapp.Assemblers.MessageModelAssembler;
 import com.real.time.chatapp.ControllerServices.AuthenticationService;
+import com.real.time.chatapp.DTO.MessageDTO;
 import com.real.time.chatapp.Entities.Conversation;
 import com.real.time.chatapp.Entities.Message;
 import com.real.time.chatapp.Entities.User;
 import com.real.time.chatapp.Exception.ConversationNotFoundException;
 import com.real.time.chatapp.Exception.MessageNotFoundException;
-import com.real.time.chatapp.Exception.UserNotFoundException;
-import com.real.time.chatapp.Exception.UserNotInConversationException;
 import com.real.time.chatapp.Repositories.ConversationRepository;
 import com.real.time.chatapp.Repositories.MessageRepository;
 import com.real.time.chatapp.Repositories.UserRepository;
@@ -93,6 +92,7 @@ public class MessageController {
 	 */
 	@GetMapping("/messages/{id}")
 	public EntityModel<Message> one(@PathVariable Long id) {
+		User user = service.getUser();
 		Message msg = messageRepository.findById(id).orElseThrow(() -> new MessageNotFoundException(id));
 		return messageAssembler.toModel(msg);
 	}
@@ -172,13 +172,14 @@ public class MessageController {
 	 * @return
 	 */
 	@PostMapping("/messages/{conversationId}")
-	ResponseEntity<?> newMessage(@RequestBody Message message,
+	ResponseEntity<?> newMessage(@RequestBody MessageDTO messageDTO,
 			@PathVariable Long conversationId) {
 		User sender = service.getUser();
+		System.out.println("Message Sender: " + sender.getUsername());
 		Conversation conversation = conversationRepository.findById(conversationId)
 				.orElseThrow(() -> new ConversationNotFoundException(conversationId));
 		if (!conversation.getConversation_users().contains(sender)) {
-			throw new UserNotInConversationException(sender.getUser_id(), conversationId);
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
 		}
 		
 		//Set Recipients of Message As All Conversation Users Other Than Sender 
@@ -189,17 +190,28 @@ public class MessageController {
 				recipients.add(recipient);
 			}
 		}
+		Message message = new Message();
+		message.setContent(messageDTO.getContent());
+		message.setSendDate(new Date());
+		message.setRead(false);
+		
 		message.setRecipients(recipients);
 		message.setSender(sender);
 		message.setConversation(conversation);
+		
+		System.out.println("Message To String: " + message.toString());
 
 		// Add Messages to List of Messages For The Current Conversation
 		List<Message> conversationMessages = conversation.getMessages();
+		if(conversationMessages == null) conversationMessages = new ArrayList<>();
 		conversationMessages.add(message);
 		conversation.setMessages(conversationMessages);
+		
+		System.out.println("Conversation Messages Size: " + conversationMessages.size());
 
 		// Add Sent Messages to the List of Sender's Sent Messages
 		List<Message> sentMessages = sender.getSentMessages();
+		if(sentMessages == null) sentMessages = new ArrayList<>();
 		sentMessages.add(message);
 		sender.setSentMessages(sentMessages);
 
@@ -223,17 +235,17 @@ public class MessageController {
 	 * @return
 	 */
 	@PutMapping("/messages/{id}")
-	ResponseEntity<?> updateMessage(@RequestBody Message newMessage, @PathVariable Long id) {
+	ResponseEntity<?> updateMessage(@RequestBody MessageDTO newMessage, @PathVariable Long id) {
 		Message updatedMessage = messageRepository.findById(id).map(message -> {
 			message.setContent(newMessage.getContent());
-			message.setConversation(newMessage.getConversation());
-			message.setRecipients(newMessage.getRecipients());
 			message.setSendDate(newMessage.getSendDate());
-			message.setSender(newMessage.getSender());
 			return messageRepository.save(message);
 		}).orElseGet(() -> {
-			newMessage.setMessage_id(id);
-			return messageRepository.save(newMessage);
+			Message msg = new Message();
+			msg.setMessage_id(id);
+			msg.setContent(newMessage.getContent());
+			msg.setSendDate(newMessage.getSendDate());
+			return messageRepository.save(msg);
 		});
 
 		EntityModel<Message> entityModel = messageAssembler.toModel(updatedMessage);
