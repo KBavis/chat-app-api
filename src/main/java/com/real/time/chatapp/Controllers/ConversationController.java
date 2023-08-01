@@ -140,8 +140,6 @@ public class ConversationController {
 		conversation.getConversation_users().add(userTwo);
 		conversation.setNumUsers(2);
 		
-		if(userOne.getList_conversations() == null) System.out.println("UserOne Conversations Are NULL [-]");
-		if(userTwo.getList_conversations() == null) System.out.println("UserTwo Conversations Are NULL [-]");
 
 		userOne.getList_conversations().add(conversation);
 		userTwo.getList_conversations().add(conversation);
@@ -160,20 +158,6 @@ public class ConversationController {
 	 */
 	@PutMapping("/conversation/{conversationId}")
 	ResponseEntity<?> updateConversation(@PathVariable Long conversationId, @RequestBody ConversationDTO newConversationDTO) {
-//		Conversation updatedConversation = conversationRepository.findById(conversationId).map(conversation -> {
-//			conversation.setConversation_id(newConversation.getConversation_id());
-//			conversation.setConversation_users(newConversation.getConversation_users());
-//			conversation.setConversationStart(newConversation.getConversationStart());
-//			conversation.setMessages(newConversation.getMessages());
-//			conversation.setNumUsers(newConversation.getNumUsers());
-//			return conversationRepository.save(conversation);
-//		}).orElseGet(() -> {
-//			newConversation.setConversation_id(conversationId);
-//			return conversationRepository.save(newConversation);
-//		});
-//
-//		EntityModel<Conversation> entityModel = conversationAssembler.toModel(updatedConversation);
-//		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
 	    Conversation existingConversation = conversationRepository.findById(conversationId)
 	            .orElseThrow(() -> new ConversationNotFoundException(conversationId));
 

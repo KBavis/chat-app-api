@@ -1,5 +1,6 @@
 package com.real.time.chatapp.Entities;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -44,7 +45,7 @@ public class Conversation {
 	 * CascadeType.REMOVE indicates that when a Converesation is dleeted, all related Messages associated with that Conversation will be removed 
 	 */
 	@OneToMany(mappedBy = "conversation", cascade = CascadeType.REMOVE, orphanRemoval = true)
-	private List<Message> messages;
+	private List<Message> messages; 
 
 	/**
 	 *  Used to specify callback method that is executed before Conversation is removed 
