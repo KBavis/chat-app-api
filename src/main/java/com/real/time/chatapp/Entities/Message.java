@@ -5,6 +5,8 @@ package com.real.time.chatapp.Entities;
 import java.util.Date;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -29,7 +31,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Message {
-	private @Id @GeneratedValue Long message_id;
+	private @Id @GeneratedValue @JsonProperty("message_id") Long message_id;
 	private boolean isRead;
 	private Date sendDate = new Date(); 
 	private String content;
@@ -58,6 +60,14 @@ public class Message {
 			user.getRecievedMessages().remove(this);
 		}
 	}
+	
+	@Override
+	public String toString() {
+		return "Message [message_id=" + message_id + ", isRead=" + isRead + ", sendDate=" + sendDate + ", content="
+				+ content + ", recipients=" + recipients + ", sender=" + sender + ", conversation=" + conversation
+				+ "]";
+	}
+
 	
 
 	

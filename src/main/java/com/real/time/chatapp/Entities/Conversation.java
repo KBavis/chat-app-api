@@ -1,10 +1,11 @@
 package com.real.time.chatapp.Entities;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -30,7 +31,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 public class Conversation {
-	private @Id @GeneratedValue(strategy = GenerationType.IDENTITY) Long conversation_id;
+	private @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @JsonProperty("conversation_id") Long conversation_id;
 	private int numUsers;
 	private Date conversationStart = new Date();
 	
@@ -46,7 +47,7 @@ public class Conversation {
 	 */
 	@OneToMany(mappedBy = "conversation", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Message> messages; 
-
+	
 	/**
 	 *  Used to specify callback method that is executed before Conversation is removed 
 	 *  Manually remove the Conversation from the assoicated Users
@@ -56,6 +57,12 @@ public class Conversation {
 		for(User user: conversation_users) {
 			user.getList_conversations().remove(this);
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "Conversation [conversation_id=" + conversation_id + ", numUsers=" + numUsers + ", conversationStart="
+				+ conversationStart + ", conversation_users=" + conversation_users + ", messages=" + messages + "]";
 	}
 
 }

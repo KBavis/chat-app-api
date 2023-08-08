@@ -1,4 +1,4 @@
-package com.real.time.chatapp.authentication;
+package com.real.time.chatapp.integration.auth;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 

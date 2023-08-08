@@ -17,6 +17,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 public class ConversationDTO {
+	private Long id;
 	private int numUsers;
 	private Date conversationStart;
 	private List<Message> messages;

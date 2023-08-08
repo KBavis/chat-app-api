@@ -175,7 +175,6 @@ public class MessageController {
 	ResponseEntity<?> newMessage(@RequestBody MessageDTO messageDTO,
 			@PathVariable Long conversationId) {
 		User sender = service.getUser();
-		System.out.println("Message Sender: " + sender.getUsername());
 		Conversation conversation = conversationRepository.findById(conversationId)
 				.orElseThrow(() -> new ConversationNotFoundException(conversationId));
 		if (!conversation.getConversation_users().contains(sender)) {
@@ -199,15 +198,11 @@ public class MessageController {
 		message.setSender(sender);
 		message.setConversation(conversation);
 		
-		System.out.println("Message To String: " + message.toString());
-
 		// Add Messages to List of Messages For The Current Conversation
 		List<Message> conversationMessages = conversation.getMessages();
 		if(conversationMessages == null) conversationMessages = new ArrayList<>();
 		conversationMessages.add(message);
 		conversation.setMessages(conversationMessages);
-		
-		System.out.println("Conversation Messages Size: " + conversationMessages.size());
 
 		// Add Sent Messages to the List of Sender's Sent Messages
 		List<Message> sentMessages = sender.getSentMessages();

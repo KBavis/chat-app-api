@@ -7,7 +7,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 import com.real.time.chatapp.Controllers.ConversationController;
 import com.real.time.chatapp.Entities.Conversation;
-import com.real.time.chatapp.Entities.Message;
 
 @Component
 public class ConversationModelAssembler implements RepresentationModelAssembler<Conversation,EntityModel<Conversation>>{

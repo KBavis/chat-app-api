@@ -130,4 +130,13 @@ public class User implements UserDetails{
 		return true;
 	}
 
+	@Override
+	public String toString() {
+		return "User [user_id=" + user_id + ", userName=" + userName + ", firstName=" + firstName + ", lastName="
+				+ lastName + ", password=" + password + ", role=" + role + ", list_conversations=" + list_conversations
+				+ ", sentMessages=" + sentMessages + ", recievedMessages=" + recievedMessages + "]";
+	}
+	
+	
+
 }
