@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,6 +22,7 @@ import com.real.time.chatapp.Entities.Conversation;
 import com.real.time.chatapp.Entities.Message;
 import com.real.time.chatapp.Entities.Role;
 import com.real.time.chatapp.Entities.User;
+import com.real.time.chatapp.Exception.BadRegisterRequestException;
 import com.real.time.chatapp.Exception.MessageNotFoundException;
 import com.real.time.chatapp.Exception.UserNotFoundException;
 import com.real.time.chatapp.Exception.UsernameTakenException;
@@ -37,6 +40,8 @@ public class AuthenticationService {
 	private final JwtService jwtService;
 	private final AuthenticationManager authenticationManager;
 	private final MessageRepository messageRepository;
+	
+	private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
 
 	
 	//Validate A User
@@ -95,7 +100,9 @@ public class AuthenticationService {
 		//Check if username already exists
 		Optional<User> optionalUser = userRepository.findByUserName(request.getUsername());
 		User u = optionalUser.orElse(null);
+		if(u == null) System.out.println("[-] Find By Username Is Returning Null");
 		if(u != null) throw new UsernameTakenException(request.getUsername());
+		if(request.getUsername() == null || request.getPassword() == null) throw new BadRegisterRequestException(request);
 		var user = User.builder()
 				.firstName(request.getFirstname())
 				.lastName(request.getLastname())
@@ -105,9 +112,9 @@ public class AuthenticationService {
 				.list_conversations(new HashSet<>())
 				.recievedMessages(new HashSet<>())
 				.build();
-		
-		userRepository.save(user);
+		log.info("Saved User: [" + userRepository.save(user) + "]");
 		var jwtToken = jwtService.generateToken(user);
+		
 		return AuthenticationResponse.builder()
 				.token(jwtToken)
 				.build();
