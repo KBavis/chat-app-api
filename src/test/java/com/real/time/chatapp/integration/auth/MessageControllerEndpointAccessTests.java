@@ -1,4 +1,4 @@
-package com.real.time.chatapp.authentication;
+package com.real.time.chatapp.integration.auth;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -275,7 +275,6 @@ public class MessageControllerEndpointAccessTests {
 	 */
 	protected Long createMockMessage(String token, Long conversationId, MessageDTO message) throws Exception{
 		mockMvc.perform(post("/messages/" + conversationId).content(new ObjectMapper().writeValueAsString(message)).header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON));
-		
 		Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ConversationNotFoundException(conversationId));
 		List<Message> messages = conversation.getMessages();
 		return messages.get(0).getMessage_id();

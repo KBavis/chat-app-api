@@ -4,6 +4,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -136,6 +137,7 @@ public class ConversationController {
 		User userTwo = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
 		
 		Conversation conversation = new Conversation();
+		if(conversation.getConversation_users() == null) conversation.setConversation_users(new HashSet<>());
 		conversation.getConversation_users().add(userOne);
 		conversation.getConversation_users().add(userTwo);
 		conversation.setNumUsers(2);
@@ -190,6 +192,7 @@ public class ConversationController {
 				.orElseThrow(() -> new ConversationNotFoundException(conversationId));
 		User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
 		conversation.getConversation_users().add(user);
+		conversation.setNumUsers(conversation.getNumUsers() + 1);
 		user.getList_conversations().add(conversation);
 		EntityModel<Conversation> entityModel = conversationAssembler
 				.toModel(conversationRepository.save(conversation));
