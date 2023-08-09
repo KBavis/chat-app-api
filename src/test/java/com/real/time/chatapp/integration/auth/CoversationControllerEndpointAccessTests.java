@@ -187,6 +187,28 @@ public class CoversationControllerEndpointAccessTests {
 	
 	@Test
 	@Transactional
+	void test_updateConversation_returnsUnauthorized() throws Exception {
+		testHelper.signUp("testUser1", "password");
+		testHelper.signUp("testUser2", "password");
+		AuthenticationResponse response = testHelper.loginAndReturnToken("testUser1", "password");
+		Long conversationId = createMockConversation(response.getToken(), "testUser2");
+		
+		testHelper.signUp("testUser3", "password");
+		AuthenticationResponse response2 = testHelper.loginAndReturnToken("testUser3", "password");
+		
+		ConversationDTO conversationDTO = new ConversationDTO();
+		conversationDTO.setConversationStart(new Date());
+		conversationDTO.setMessages(new ArrayList<>());
+		conversationDTO.setNumUsers(0);
+		
+		mockMvc.perform(put("/conversation/" + conversationId)
+				.header("Authorization", "Bearer " + response2.getToken())
+				.content(new ObjectMapper().writeValueAsString(conversationDTO)).contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isUnauthorized());
+	}
+	
+	@Test
+	@Transactional
 	void test_addUserToConversation_returnsForbidden() throws Exception {
 		testHelper.signUp("testUser1", "password");
 		testHelper.signUp("testUser2", "password");

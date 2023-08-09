@@ -22,10 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.real.time.chatapp.Assemblers.UserModelAssembler;
 import com.real.time.chatapp.ControllerServices.AuthenticationService;
+import com.real.time.chatapp.ControllerServices.UserService;
 import com.real.time.chatapp.DTO.UserDTO;
 import com.real.time.chatapp.Entities.Message;
-import com.real.time.chatapp.Entities.Role;
 import com.real.time.chatapp.Entities.User;
+import com.real.time.chatapp.Exception.UnauthorizedException;
 import com.real.time.chatapp.Exception.UserNotFoundException;
 import com.real.time.chatapp.Repositories.MessageRepository;
 import com.real.time.chatapp.Repositories.UserRepository;
@@ -36,10 +37,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserController {
 
-	private final UserRepository user_repository;
-	private final UserModelAssembler user_assembler;
-	private final MessageRepository message_repository;
-	private final AuthenticationService service;
+	private final UserModelAssembler userAssembler;
+	private final UserService userService;
 
 	/**
 	 * Fetching all users
@@ -48,7 +47,7 @@ public class UserController {
 	 */
 	@GetMapping("/users")
 	public CollectionModel<EntityModel<User>> all() {
-		List<EntityModel<User>> users = user_repository.findAll().stream().map(user_assembler::toModel)
+		List<EntityModel<User>> users = userService.getAllUsers().stream().map(userAssembler::toModel)
 				.collect(Collectors.toList());
 
 		return CollectionModel.of(users, linkTo(methodOn(UserController.class).all()).withSelfRel());
@@ -63,8 +62,8 @@ public class UserController {
 	@GetMapping("/users/{id}")
 	public EntityModel<User> one(@PathVariable Long id) {
 
-		User user = user_repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-		return user_assembler.toModel(user);
+		User user = userService.getUserById(id);
+		return userAssembler.toModel(user);
 	}
 
 	/**
@@ -75,9 +74,8 @@ public class UserController {
 	 */
 	@GetMapping("/search/users/name")
 	CollectionModel<EntityModel<User>> searchUsersByName(@RequestParam String name) {
-		String[] firstAndLast = name.split(" ");
-		List<EntityModel<User>> entityModels = user_repository.searchUsersByName(firstAndLast[0], firstAndLast[1])
-				.stream().map(user_assembler::toModel).collect(Collectors.toList());
+		List<EntityModel<User>> entityModels = userService.searchUserByName(name)
+				.stream().map(userAssembler::toModel).collect(Collectors.toList());
 
 		return CollectionModel.of(entityModels,
 				linkTo(methodOn(UserController.class).searchUsersByName(name)).withSelfRel());
@@ -91,8 +89,8 @@ public class UserController {
 	 */
 	@GetMapping("/search/users/userName")
 	CollectionModel<EntityModel<User>> searchUsersByUserName(@RequestParam String userName) {
-		List<EntityModel<User>> entityModels = user_repository.searchUsersByUserName(userName).stream()
-				.map(user_assembler::toModel).collect(Collectors.toList());
+		List<EntityModel<User>> entityModels = userService.searchUserByUsername(userName).stream()
+				.map(userAssembler::toModel).collect(Collectors.toList());
 
 		return CollectionModel.of(entityModels,
 				linkTo(methodOn(UserController.class).searchUsersByUserName(userName)).withSelfRel());
@@ -107,21 +105,14 @@ public class UserController {
 	 */
 	@PutMapping("users/{id}")
 	ResponseEntity<?> updateUser(@RequestBody UserDTO newUser, @PathVariable Long id) {
-		User user = user_repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-		if(!service.validateUser(user)) {
+		try {
+			User updatedUser = userService.updateUser(id, newUser);
+			EntityModel<User> entityModel = userAssembler.toModel(updatedUser);
+			return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
+		} catch(UnauthorizedException ex) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You are not authorized to perform this action.");
 		}
-		user.setFirstName(newUser.getFirstName());
-		user.setLastName(newUser.getLastName());
-		user.setPassword(newUser.getPassword());
-		user.setRole(newUser.getRole());
-		user.setUserName(newUser.getUsername());
-		User updatedUser = user_repository.save(user);
-		
 
-		EntityModel<User> entityModel = user_assembler.toModel(updatedUser);
-
-		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
 	}
 
 	/**
@@ -132,27 +123,12 @@ public class UserController {
 	 */
 	@DeleteMapping("/users/{id}")
 	ResponseEntity<?> deleteUser(@PathVariable Long id) {
-		// TODO: Consider another way to do this logic ??
-		/**
-		 * Delete messages sent by User and remove all recipients of each message sent
-		 * by User
-		 */
-
-		User user = user_repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        //Ensure this user is either an admin or a user deleting their account
-		if(!service.validateUser(user)) {
+		try {
+			userService.deleteUser(id);
+			return ResponseEntity.noContent().build();
+		}catch(UnauthorizedException ex) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You are not authorized to perform this action.");
 		}
-		if(user.getSentMessages() != null) {
-			for (Message msg : user.getSentMessages()) {
-				Set<User> recipients = msg.getRecipients();
-				for (User current : recipients) {
-					current.getRecievedMessages().remove(msg);
-				}
-				message_repository.deleteById(msg.getMessage_id());
-			}	
-		}
-		user_repository.deleteById(id);
-		return ResponseEntity.noContent().build();
+
 	}
 }

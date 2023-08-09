@@ -1,4 +1,4 @@
-package com.real.time.chatapp.integration.auth;
+package com.real.time.chatapp.integration.rest;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 //import static org.junit.Assert.assertNotNull;
@@ -41,11 +41,11 @@ public class AuthenticationControllerTests {
 	@Autowired
 	private UserRepository repository;
 
-	private AuthenticationTestHelper testHelper;
+	private RestIntegrationTestHelper testHelper;
 
 	@BeforeEach
 	void setUp() {
-		testHelper = new AuthenticationTestHelper(mockMvc, repository);
+		testHelper = new RestIntegrationTestHelper(mockMvc, repository);
 	}
 
 	/**
