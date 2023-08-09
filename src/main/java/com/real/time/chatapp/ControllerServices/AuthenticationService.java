@@ -100,7 +100,6 @@ public class AuthenticationService {
 		//Check if username already exists
 		Optional<User> optionalUser = userRepository.findByUserName(request.getUsername());
 		User u = optionalUser.orElse(null);
-		if(u == null) System.out.println("[-] Find By Username Is Returning Null");
 		if(u != null) throw new UsernameTakenException(request.getUsername());
 		if(request.getUsername() == null || request.getPassword() == null) throw new BadRegisterRequestException(request);
 		var user = User.builder()

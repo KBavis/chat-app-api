@@ -167,6 +167,13 @@ public class MessageControllerEndpointAccessTests {
 	
 	@Test
 	@Transactional
+	void test_updateMessage_returnsUnathorized() throws Exception {
+		AuthenticationResponse authResponse = testHelper.loginAndReturnToken("testUser2", "password");
+		mockMvc.perform(put("/messages/" + messageId).header("Authorization", "Bearer " + authResponse.getToken()).content(new ObjectMapper().writeValueAsString(messageDTO)).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isUnauthorized());
+	}
+	
+	@Test
+	@Transactional
 	void test_deleteMessage_returnsForbidden() throws Exception {
 		mockMvc.perform(delete("/messages/" + messageId).content(new ObjectMapper().writeValueAsString(messageDTO)).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isForbidden());
 	}
