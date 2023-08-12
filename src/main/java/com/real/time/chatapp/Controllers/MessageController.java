@@ -87,7 +87,12 @@ public class MessageController {
 	 */
 	@GetMapping("/messages/{id}")
 	public EntityModel<Message> one(@PathVariable Long id) {
-		Message msg = messageService.getMessageById(id);
+		Message msg;
+		try {
+			 msg = messageService.getMessageById(id);
+		} catch(UnauthorizedException ex) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
+		}
 		return messageAssembler.toModel(msg);
 	}
 
@@ -98,7 +103,7 @@ public class MessageController {
 	 * @return
 	 */
 	@GetMapping("/messages/conversations/{id}")
-	CollectionModel<EntityModel<Message>> getConversationMessages(@PathVariable Long id) {
+	public CollectionModel<EntityModel<Message>> getConversationMessages(@PathVariable Long id) {
 		List<EntityModel<Message>> entityModels;
 		try {
 			entityModels = messageService.getConversationMessages(id).stream().map(messageAssembler::toModel)
@@ -118,7 +123,7 @@ public class MessageController {
 	 * @return
 	 */
 	@GetMapping("/search/messages/content")
-	CollectionModel<EntityModel<Message>> searchMessagesByContent(@RequestParam("content") String content) {
+	public CollectionModel<EntityModel<Message>> searchMessagesByContent(@RequestParam("content") String content) {
 		List<EntityModel<Message>> entityModels = messageService.searchMessagesByContent(content).stream()
 				.map(messageAssembler::toModel).collect(Collectors.toList());
 
@@ -133,7 +138,7 @@ public class MessageController {
 	 * @return
 	 */
 	@GetMapping("/search/messages/date")
-	CollectionModel<EntityModel<Message>> searchMessagesByDateSent(
+	public CollectionModel<EntityModel<Message>> searchMessagesByDateSent(
 			@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
 		List<EntityModel<Message>> entityModels = messageService.searchMessagesByDate(date).stream()
 				.map(messageAssembler::toModel).collect(Collectors.toList());
@@ -148,7 +153,7 @@ public class MessageController {
 	 * @return
 	 */
 	@GetMapping("/search/messages/read")
-	CollectionModel<EntityModel<Message>> searchMessagesByIsRead() {
+	public CollectionModel<EntityModel<Message>> searchMessagesByIsRead() {
 		List<EntityModel<Message>> entityModels = messageService.searchMessagesByRead().stream()
 				.map(messageAssembler::toModel).collect(Collectors.toList());
 
@@ -162,7 +167,7 @@ public class MessageController {
 	 * @return
 	 */
 	@PostMapping("/messages/{conversationId}")
-	ResponseEntity<?> newMessage(@RequestBody MessageDTO messageDTO, @PathVariable Long conversationId) {
+	public ResponseEntity<?> newMessage(@RequestBody MessageDTO messageDTO, @PathVariable Long conversationId) {
 		EntityModel<Message> entityModel;
 		try {
 			entityModel = messageAssembler.toModel(messageService.createMessage(messageDTO, conversationId));
@@ -181,7 +186,7 @@ public class MessageController {
 	 * @return
 	 */
 	@PutMapping("/messages/{id}")
-	ResponseEntity<?> updateMessage(@RequestBody MessageDTO newMessage, @PathVariable Long id) {
+	public ResponseEntity<?> updateMessage(@RequestBody MessageDTO newMessage, @PathVariable Long id) {
 		EntityModel<Message> entityModel;	
 		try {
 			entityModel = messageAssembler.toModel(messageService.updateMessage(newMessage, id));
@@ -197,7 +202,7 @@ public class MessageController {
 	 * @return
 	 */
 	@DeleteMapping("/messages/{id}")
-	ResponseEntity<?> deleteMessage(@PathVariable Long id) {
+	public ResponseEntity<?> deleteMessage(@PathVariable Long id) {
 		try {
 			messageService.deleteMessage(id);
 		}catch(UnauthorizedException ex) {
