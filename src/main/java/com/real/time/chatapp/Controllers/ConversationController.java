@@ -98,7 +98,7 @@ public class ConversationController {
 	 * @return
 	 */
 	@GetMapping("/search/conversations")
-	CollectionModel<EntityModel<Conversation>> findConversationsByDate(
+	public CollectionModel<EntityModel<Conversation>> findConversationsByDate(
 			@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
 
 		List<EntityModel<Conversation>> entityModels = conversationService.searchConversationsByDate(date).stream()
@@ -115,7 +115,7 @@ public class ConversationController {
 	 * @return
 	 */
 	@GetMapping("/search/conversations/{id}")
-	CollectionModel<EntityModel<Conversation>> findConversationsWithUser(@PathVariable Long id) {
+	public CollectionModel<EntityModel<Conversation>> findConversationsWithUser(@PathVariable Long id) {
 		List<EntityModel<Conversation>> entityModels = conversationService.searchConversationsWithUser(id).stream()
 				.map(conversationAssembler::toModel).collect(Collectors.toList());
 
@@ -131,7 +131,7 @@ public class ConversationController {
 	 * @return
 	 */
 	@PostMapping("/conversations/{userId}")
-	ResponseEntity<?> createConversationBetweenUsers(@PathVariable Long userId) {
+	public ResponseEntity<?> createConversationBetweenUsers(@PathVariable Long userId) {
 
 		EntityModel<Conversation> entityModel = conversationAssembler
 				.toModel(conversationService.createConversation(userId));
@@ -146,7 +146,7 @@ public class ConversationController {
 	 * @return
 	 */
 	@PutMapping("/conversation/{conversationId}")
-	ResponseEntity<?> updateConversation(@PathVariable Long conversationId,
+	public ResponseEntity<?> updateConversation(@PathVariable Long conversationId,
 			@RequestBody ConversationDTO newConversationDTO) {
 		EntityModel<Conversation> entityModel;
 		try {
@@ -166,7 +166,7 @@ public class ConversationController {
 	 * @return
 	 */
 	@PutMapping("/conversations/{conversationId}/{userId}")
-	ResponseEntity<?> addUserToConversation(@PathVariable Long conversationId, @PathVariable Long userId) {
+	public ResponseEntity<?> addUserToConversation(@PathVariable Long conversationId, @PathVariable Long userId) {
 		EntityModel<Conversation> entityModel;
 		try {
 			entityModel = conversationAssembler
@@ -185,7 +185,7 @@ public class ConversationController {
 	 * @return
 	 */
 	@DeleteMapping("/conversation/leave/{conversationId}")
-	ResponseEntity<?> leaveConversation(@PathVariable Long conversationId) {
+	public ResponseEntity<?> leaveConversation(@PathVariable Long conversationId) {
 		try {
 			conversationService.leaveConversation(conversationId);
 		} catch (UnauthorizedException ex) {
@@ -201,7 +201,7 @@ public class ConversationController {
 	 * @return
 	 */
 	@DeleteMapping("/conversations/{conversationId}")
-	ResponseEntity<?> deleteConversation(@PathVariable Long conversationId) {
+	public ResponseEntity<?> deleteConversation(@PathVariable Long conversationId) {
 		try {
 			conversationService.deleteConversation(conversationId);
 		} catch (UnauthorizedException ex) {

@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.real.time.chatapp.Auth.AuthenticationRequest;
 import com.real.time.chatapp.Auth.AuthenticationResponse;
@@ -36,7 +37,7 @@ import com.real.time.chatapp.Repositories.UserRepository;
 import jakarta.transaction.Transactional;
 
 /**
- * Unit Tests for Conversation Controlelr
+ * Unit Tests for Authentication Controller 
  * 
  * @author bavis
  *
@@ -73,25 +74,35 @@ public class AuthenticationControllerTests {
 	
     @Test
     @Transactional
-    void test_registerUser_returnsUsernameTakenException() {
+    void test_registerUser_returnsConflict() {
         // Mocking
         RegisterRequest registerRequest = new RegisterRequest();
         registerRequest.setUsername("existingUsername");
         when(authService.register(registerRequest)).thenThrow(new UsernameTakenException("existingUsername"));
+        
+        //Act and Assert
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            authController.register(registerRequest);
+        });
+        assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+        assertEquals("The requested username is already taken.", exception.getReason());
 
-        // Act and Assert
-        assertThrows(UsernameTakenException.class, () -> authController.register(registerRequest));
     }
     
     @Test
     @Transactional
-    void test_registerUser_returnsBadRequestException() {
+    void test_registerUser_returnsBadRequest() {
         // Mocking
         RegisterRequest registerRequest = new RegisterRequest();
         when(authService.register(registerRequest)).thenThrow(new BadRegisterRequestException(registerRequest));
         
-        // Act and Assert
-        assertThrows(BadRegisterRequestException.class, () -> authController.register(registerRequest));
+        
+        //Act and Assert
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            authController.register(registerRequest);
+        });
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertEquals("The register request is invalid.", exception.getReason());
     }
 
     
@@ -117,27 +128,35 @@ public class AuthenticationControllerTests {
     
     @Test
     @Transactional
-    void test_authenticateuser_wrongPassword() {
+    void test_authenticateuser_wrongPassword_returnsUnauthorized() {
         // Mocking
         AuthenticationRequest authRequest = new AuthenticationRequest();
         authRequest.setUsername("testUser");
         authRequest.setPassword("wrongPassword");
         when(authService.authenticate(authRequest)).thenThrow(new BadCredentialsException("Authentication failed"));
         
-        // Act and Assert
-        assertThrows(BadCredentialsException.class, () -> authController.authenticate(authRequest));
+        //Act and Assert
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            authController.authenticate(authRequest);
+        });
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+        assertEquals("The provided credentials are invalid.", exception.getReason());
     }
     
     @Test
     @Transactional
-    void test_authenticateuser_wrongUsername() {
+    void test_authenticateuser_wrongUsername_returnsUnauthorized() {
         // Mocking
         AuthenticationRequest authRequest = new AuthenticationRequest();
         authRequest.setUsername("wrongUser");
         authRequest.setPassword("password");
         when(authService.authenticate(authRequest)).thenThrow(new BadCredentialsException("Authentication failed"));
         
-        // Act and Assert
-        assertThrows(BadCredentialsException.class, () -> authController.authenticate(authRequest));
+        //Act and Assert
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            authController.authenticate(authRequest);
+        });
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+        assertEquals("The provided credentials are invalid.", exception.getReason());
     }
 }
