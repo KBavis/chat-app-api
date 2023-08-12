@@ -39,62 +39,9 @@ public class AuthenticationService {
 	private final PasswordEncoder passwordEncoder;
 	private final JwtService jwtService;
 	private final AuthenticationManager authenticationManager;
-	private final MessageRepository messageRepository;
 	
 	private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
 
-	
-	//Validate A User
-	public boolean validateUser(User user) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String authenticatedUsername = authentication.getName().trim();
-		if(user.getRole() != Role.ADMIN && !user.getUsername().trim().equals(authenticatedUsername)) {
-			return false;
-		}
-		return true;
-	}
-	
-	//Validating A User Is An Admin
-	public boolean validateAdmin() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userName = authentication.getName().trim();
-        var user = userRepository.findByUserName(userName).orElseThrow(() -> new UserNotFoundException(userName));
-        if(user.getRole() == Role.ADMIN) {
-        	return true;
-        }
-        return false;
-	}
-
-	public boolean validateMessage(Long id) {
-		Message message = messageRepository.findById(id).orElseThrow(() -> new MessageNotFoundException(id));
-		User sender = message.getSender();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userName = authentication.getName().trim();
-        if(!userName.equals(sender.getUsername())) {
-        	return false;
-        }
-        return true;
-	}
-
-	public boolean validateUserConversation(Conversation conversation) {
-		Set<User> users = conversation.getConversation_users();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userName = authentication.getName().trim();
-        for(User user: users) {
-        	if(user.getUsername().equals(userName)) {
-        		return true;
-        	}
-        }
-        return false;
-	}
-
-	public User getUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userName = authentication.getName().trim();
-        Optional<User> user = userRepository.findByUserName(userName);
-        User foundUser = user.orElseThrow(() -> new UserNotFoundException(userName));
-        return foundUser;
-	}
 
 	public AuthenticationResponse register(RegisterRequest request) {
 		//Check if username already exists

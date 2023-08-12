@@ -73,7 +73,7 @@ public class UserController {
 	 * @return
 	 */
 	@GetMapping("/search/users/name")
-	CollectionModel<EntityModel<User>> searchUsersByName(@RequestParam String name) {
+	public CollectionModel<EntityModel<User>> searchUsersByName(@RequestParam String name) {
 		List<EntityModel<User>> entityModels = userService.searchUserByName(name)
 				.stream().map(userAssembler::toModel).collect(Collectors.toList());
 
@@ -88,7 +88,7 @@ public class UserController {
 	 * @return
 	 */
 	@GetMapping("/search/users/userName")
-	CollectionModel<EntityModel<User>> searchUsersByUserName(@RequestParam String userName) {
+	public CollectionModel<EntityModel<User>> searchUsersByUserName(@RequestParam String userName) {
 		List<EntityModel<User>> entityModels = userService.searchUserByUsername(userName).stream()
 				.map(userAssembler::toModel).collect(Collectors.toList());
 
@@ -104,7 +104,7 @@ public class UserController {
 	 * @return
 	 */
 	@PutMapping("users/{id}")
-	ResponseEntity<?> updateUser(@RequestBody UserDTO newUser, @PathVariable Long id) {
+	public ResponseEntity<?> updateUser(@RequestBody UserDTO newUser, @PathVariable Long id) {
 		try {
 			User updatedUser = userService.updateUser(id, newUser);
 			EntityModel<User> entityModel = userAssembler.toModel(updatedUser);
@@ -122,7 +122,7 @@ public class UserController {
 	 * @return
 	 */
 	@DeleteMapping("/users/{id}")
-	ResponseEntity<?> deleteUser(@PathVariable Long id) {
+	public ResponseEntity<?> deleteUser(@PathVariable Long id) {
 		try {
 			userService.deleteUser(id);
 			return ResponseEntity.noContent().build();

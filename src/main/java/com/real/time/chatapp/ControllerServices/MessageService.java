@@ -64,9 +64,20 @@ public class MessageService {
 	 * @return
 	 */
 	public Message getMessageById(Long id) {
-		return messageRepository.findById(id).orElseThrow(() -> new MessageNotFoundException(id));
+		Message msg = messageRepository.findById(id).orElseThrow(() -> new MessageNotFoundException(id));
+		User user = getUser();
+		if(!canAccessMessage(msg,user)) {
+			throw new UnauthorizedException(user);
+		}
+		return msg;
 	}
 	
+	private boolean canAccessMessage(Message msg, User user) {
+		List<Message> sentMessages = user.getSentMessages();
+		Set<Message> recievedMessages = user.getRecievedMessages();
+		return sentMessages.contains(msg) || recievedMessages.contains(msg);
+	}
+
 	/**
 	 * Get Message In Specific Converastion
 	 * 
