@@ -108,7 +108,7 @@ public class UserService {
 	 * 
 	 * @param list
 	 */
-	public void deleteMessageAndRemoveRecipients(List<Message> list) {
+	 public void deleteMessageAndRemoveRecipients(List<Message> list) {
 		if(list != null) {
 			for (Message msg : list) {
 				Set<User> recipients = msg.getRecipients();
