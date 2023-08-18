@@ -4,7 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -14,14 +17,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.real.time.chatapp.Assemblers.MessageModelAssembler;
@@ -40,6 +46,8 @@ import com.real.time.chatapp.Repositories.MessageRepository;
  * @author bavis
  *
  */
+@SpringBootTest
+@DirtiesContext
 public class MessageControllerTests {
 	
 	@Mock
@@ -79,13 +87,14 @@ public class MessageControllerTests {
 		when(messageAssembler.toModel(mockMessages.get(1))).thenReturn(mockEntityModel2);
 
 		// Set Up Links To Compare to Entity Models
-		message2Link= linkTo(methodOn(MessageController.class).one(message1.getMessage_id()))
+		message1Link= linkTo(methodOn(MessageController.class).one(message1.getMessage_id()))
 				.withSelfRel();
 		message2Link= linkTo(methodOn(MessageController.class).one(message2.getMessage_id()))
 				.withSelfRel();
 		messageAllLink= linkTo(methodOn(MessageController.class).all()).withSelfRel();
 	}
 	
+	@Test
 	void test_getAllMessages_isSuccesful() {
 		//Mock
 		when(messageService.getAllMessages()).thenReturn(mockMessages);
@@ -95,8 +104,13 @@ public class MessageControllerTests {
 		
 		//assert
 		validateModel(response);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(messageService, times(1)).getAllMessages();
+		verify(messageAssembler, times(2)).toModel(any(Message.class));
 	}
 	
+	@Test
 	void test_getAllMessages_returnsUnauthroized() {
 		when(messageService.getAllMessages()).thenThrow(new UnauthorizedException(new User()));
 
@@ -107,8 +121,12 @@ public class MessageControllerTests {
 		
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 		assertEquals("Unauthorized access", exception.getReason());
+		
+		//Ensure Stubbed Methods Are Called
+		verify(messageService, times(1)).getAllMessages();
 	}
 	
+	@Test
 	void test_getAllUserMessages_isSuccesful() {
 		//Mock
 		when(messageService.getAllUserMessages()).thenReturn(mockMessages);
@@ -118,8 +136,13 @@ public class MessageControllerTests {
 		
 		//assert
 		validateModel(response);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(messageService, times(1)).getAllUserMessages();
+		verify(messageAssembler, times(2)).toModel(any(Message.class));
 	}
 	
+	@Test
 	void test_getMessageById_isSuccesful() {
 		//Mock
 		when(messageService.getMessageById(1L)).thenReturn(message1);
@@ -128,13 +151,17 @@ public class MessageControllerTests {
 		EntityModel<Message> entityModel = messageController.one(1L);
 		
 		//Assert
-		// Assert
 		assertNotNull(entityModel);
 		assertTrue(entityModel.getLinks().hasLink(message1Link.getRel()));
 		assertTrue(entityModel.getLinks().hasLink(messageAllLink.getRel()));
 		assertEquals(entityModel.getContent(), message1);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(messageService, times(1)).getMessageById(1L);
+		verify(messageAssembler, times(1)).toModel(message1);
 	}
 	
+	@Test
 	void test_getMessageById_isUnauthorized() {
 		when(messageService.getMessageById(1L)).thenThrow(new UnauthorizedException(new User()));
 
@@ -145,8 +172,12 @@ public class MessageControllerTests {
 		
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 		assertEquals("Unauthorized access", exception.getReason());
+		
+		//Ensure Stubbed Methods Are Called
+		verify(messageService, times(1)).getMessageById(1L);
 	}
 	
+	@Test
 	void test_getMessageByConversation_isSuccesful() {
 		//Mock
 		when(messageService.getConversationMessages(1L)).thenReturn(mockMessages);
@@ -156,8 +187,13 @@ public class MessageControllerTests {
 		
 		//assert
 		validateModel(response);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(messageService, times(1)).getConversationMessages(1L);
+		verify(messageAssembler, times(2)).toModel(any(Message.class));
 	}
 	
+	@Test
 	void test_getMessagesByConversation_isUnauthorized() {
 		when(messageService.getConversationMessages(1L)).thenThrow(new UnauthorizedException(new User()));
 
@@ -168,8 +204,12 @@ public class MessageControllerTests {
 		
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 		assertEquals("Unauthorized access", exception.getReason());	
+		
+		//Ensure Stubbed Methods Are Called
+		verify(messageService, times(1)).getConversationMessages(1L);
 	}
 	
+	@Test
 	void test_searchMessagesByContent_isSucessful() {
 		//Mock
 		when(messageService.searchMessagesByContent("Content")).thenReturn(mockMessages);
@@ -179,9 +219,13 @@ public class MessageControllerTests {
 		
 		//assert
 		validateModel(response);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(messageService, times(1)).searchMessagesByContent("Content");
+		verify(messageAssembler, times(2)).toModel(any(Message.class));
 	}
 	
-	
+	@Test
 	void test_searchMessageByDate_isSuccesful() {
 		//Mock
 		Date date = new Date();
@@ -192,8 +236,13 @@ public class MessageControllerTests {
 		
 		//assert
 		validateModel(response);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(messageService, times(1)).searchMessagesByDate(date);
+		verify(messageAssembler, times(2)).toModel(any(Message.class));
 	}
 	
+	@Test
 	void test_searchMessagesByRead_isSuccesful() {
 		when(messageService.searchMessagesByRead()).thenReturn(mockMessages);
 		
@@ -202,8 +251,13 @@ public class MessageControllerTests {
 		
 		//assert
 		validateModel(response);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(messageService, times(1)).searchMessagesByRead();
+		verify(messageAssembler, times(2)).toModel(any(Message.class));
 	}
 	
+	@Test
 	void test_sendMessage_isSuccesful() {
 		MessageDTO messageDTO = new MessageDTO();
 		when(messageService.createMessage(messageDTO, 1L)).thenReturn(message1);
@@ -211,8 +265,13 @@ public class MessageControllerTests {
 		ResponseEntity<?> responseEntity = messageController.newMessage(messageDTO, 1L);
 		
 		validateResponse(responseEntity);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(messageService, times(1)).createMessage(messageDTO, 1L);
+		verify(messageAssembler, times(1)).toModel(message1);
 	}
 	
+	@Test
 	void test_sendMessage_returnsUnauthorized() {
 		MessageDTO messageDTO = new MessageDTO();
 		when(messageService.createMessage(messageDTO,1L)).thenThrow(new UnauthorizedException(new User()));
@@ -224,8 +283,12 @@ public class MessageControllerTests {
 		
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 		assertEquals("Unauthorized access", exception.getReason());
+		
+		//Ensure Stubbed Methods Are Called
+		verify(messageService, times(1)).createMessage(messageDTO, 1L);
 	}
 	
+	@Test
 	void test_updateMessage_isSuccesfull() {
 		MessageDTO messageDTO = new MessageDTO();
 		when(messageService.updateMessage(messageDTO, 1L)).thenReturn(message1);
@@ -233,8 +296,13 @@ public class MessageControllerTests {
 		ResponseEntity<?> responseEntity = messageController.updateMessage(messageDTO, 1L);
 		
 		validateResponse(responseEntity);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(messageService, times(1)).updateMessage(messageDTO, 1L);
+		verify(messageAssembler, times(1)).toModel(message1);
 	}
 	
+	@Test
 	void test_updateMessage_returnsUnauthorized() {
 		MessageDTO messageDTO = new MessageDTO();
 		when(messageService.updateMessage(messageDTO,1L)).thenThrow(new UnauthorizedException(new User()));
@@ -246,8 +314,12 @@ public class MessageControllerTests {
 		
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 		assertEquals("Unauthorized access", exception.getReason());
+		
+		//Ensure Stubbed Methods Are Called
+		verify(messageService, times(1)).updateMessage(messageDTO, 1L);
 	}
 	
+	@Test
 	void test_deleteMessage_isSuccesful() {
 		//Act
 		ResponseEntity<?> responseEntity = messageController.deleteMessage(1L);
@@ -256,6 +328,7 @@ public class MessageControllerTests {
 	    assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
 	}
 	
+	@Test
 	void test_deleteMessage_returnsUnauthrozied() {
 		//Mock
 		doThrow(new UnauthorizedException(new User())).when(messageService).deleteMessage(1L);
@@ -268,6 +341,9 @@ public class MessageControllerTests {
 		//Assert
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 		assertEquals(exception.getReason(), "Unauthorized access");
+		
+		//Ensure Stubbed Methods Are Called
+		verify(messageService, times(1)).deleteMessage(1L);
 	}
 	//TODO: Since We Reuse The Vlaidate Model and Validate Response Method in Each Controller Unit Tests
 	//			-Consider Creating Helper Class that Uitlizes Generics 
@@ -317,15 +393,15 @@ public class MessageControllerTests {
 
 	
 	/**
-	 * Helper Method to Mock ConversationAssembler
+	 * Helper Method to Mock  MesageAssembler
 	 * 
 	 * @param conversation
 	 * @return
 	 */
 	EntityModel<Message> mockEntityModel(Message message) {
 		return EntityModel.of(message,
-				linkTo(methodOn(ConversationController.class).one(message.getMessage_id())).withSelfRel(),
-				linkTo(methodOn(ConversationController.class).all()).withRel("/messages"));
+				linkTo(methodOn(MessageController.class).one(message.getMessage_id())).withSelfRel(),
+				linkTo(methodOn(MessageController.class).all()).withRel("/messages"));
 	}
 	
 }

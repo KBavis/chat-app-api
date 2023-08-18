@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -13,6 +15,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -44,16 +48,16 @@ import com.real.time.chatapp.Repositories.UserRepository;
 public class UserControllerTests {
 	
 	@Mock
-	UserService userService;
+	private UserService userService;
 	
 	@Mock
-	UserRepository userRepository;
+	private UserRepository userRepository;
 	
 	@Mock 
-	UserModelAssembler userAssembler;
+	private UserModelAssembler userAssembler;
 	
 	@InjectMocks
-	UserController userController;
+	private UserController userController;
 	
 	User user1;
 	User user2;
@@ -63,7 +67,9 @@ public class UserControllerTests {
 	Link user1Link;
 	Link user2Link;
 	Link userAllLink;
-	void setup() {
+	
+	@BeforeEach
+	void setUp() {
 		// Prepare mock data
 		user1 = new User();
 		user1.setUser_id(1L);
@@ -84,6 +90,8 @@ public class UserControllerTests {
 				.withSelfRel();
 		userAllLink = linkTo(methodOn(UserController.class).all()).withSelfRel();
 	}
+	
+	@Test
 	void test_getAllUsers_isSuccesfull() {
 		//Mock
 		when(userService.getAllUsers()).thenReturn(mockUsers);
@@ -93,8 +101,13 @@ public class UserControllerTests {
 		
 		//Assert
 		validateModel(response);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(userService, times(1)).getAllUsers();
+		verify(userAssembler, times(2)).toModel(any(User.class));
 	}
 	
+	@Test
 	void test_getUserById_isSuccesful() {
 		//Mock
 		when(userService.getUserById(1L)).thenReturn(user1);
@@ -107,19 +120,29 @@ public class UserControllerTests {
 		assertTrue(entityModel.getLinks().hasLink(user1Link.getRel()));
 		assertTrue(entityModel.getLinks().hasLink(userAllLink.getRel()));
 		assertEquals(entityModel.getContent(), user1);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(userService, times(1)).getUserById(1L);
+		verify(userAssembler, times(1)).toModel(user1);
 	}
 	
+	@Test
 	void void_testSearchUsersByName_isSuccesful() {
 		//Mock
-		when(userService.searchUserByName(any())).thenReturn(mockUsers);
+		when(userService.searchUserByName(any(String.class))).thenReturn(mockUsers);
 		
 		//Act
 		CollectionModel<EntityModel<User>> response = userController.searchUsersByName("Name");
 		
 		//Assert
 		validateModel(response);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(userService, times(1)).searchUserByName(any(String.class));
+		verify(userAssembler, times(2)).toModel(any(User.class));
 	}
 	
+	@Test
 	void test_searchUsersByUserName_isSuccesful() {
 		//Mock
 		when(userService.searchUserByUsername(any())).thenReturn(mockUsers);
@@ -129,8 +152,13 @@ public class UserControllerTests {
 		
 		//Assert
 		validateModel(response);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(userService, times(1)).searchUserByUsername(any());
+		verify(userAssembler, times(2)).toModel(any(User.class));
 	}
 	
+	@Test
 	void test_updateUser_isSuccesful() {
 		//Mock
 		UserDTO userDTO = new UserDTO();
@@ -139,10 +167,15 @@ public class UserControllerTests {
 		//Act
 		ResponseEntity<?> responseEntity = userController.updateUser(userDTO, 1L);
 		
-		//
+		//Assert
 		validateResponse(responseEntity);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(userService, times(1)).updateUser(1L,userDTO);
+		verify(userAssembler, times(1)).toModel(user1);
 	}
 	
+	@Test
 	void test_updateUser_returnsUnauthorized() {
 		//Mock
 		UserDTO userDTO = new UserDTO();
@@ -157,28 +190,39 @@ public class UserControllerTests {
 		//Assert
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 		assertEquals(exception.getReason(), "Unauthorized access");
+		
+		//Ensure Stubbed Methods Are Called
+		verify(userService, times(1)).updateUser(1L,userDTO);
 	}
 	
+	@Test
 	void test_deleteUser_isSuccesful() {
 		//Act
 		ResponseEntity<?> responseEntity = userController.deleteUser(1L);
 		
 	    //Assert
 	    assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+	    
+		//Ensure Stubbed Methods Are Called
+		verify(userService, times(1)).deleteUser(1L);
 	}
 	
+	@Test
 	void test_deleteUser_isUnauthorized() {
 		//Mock
-		doThrow(new UnauthorizedException(new User())).when(userService).deleteUser(1L);
-		
-		//Act
+		 doThrow(new UnauthorizedException(new User())).when(userService).deleteUser(1L);
+		 
 		ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
 			userController.deleteUser(1L);
 		});
 		
+		
 		//Assert
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 		assertEquals(exception.getReason(), "Unauthorized access");
+		
+		//Ensure Stubbed Methods Are Called
+		verify(userService, times(1)).deleteUser(1L);
 	}
 	
 	

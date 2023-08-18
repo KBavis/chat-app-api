@@ -163,6 +163,7 @@ public class UserServiceTests {
                 .build();
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByUserName("TestUser1")).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
         
         
@@ -180,64 +181,23 @@ public class UserServiceTests {
         //Ensure Stubbed Methods Are Called
         verify(userRepository, times(1)).findById(1L);
         verify(userRepository, times(1)).save(any(User.class));
+        verify(userRepository, times(1)).findByUserName("TestUser1");
     }
     
-//    @Test
-//    @Transactional
-//    @WithMockUser(username = "AdminUser")
-//    public void test_updateUser_asAdmin_isSuccessful() {
-//        // Arrange
-//        User adminUser = User.builder()
-//                .user_id(1L)
-//                .firstName("Admin")
-//                .lastName("User")
-//                .userName("AdminUser")
-//                .password("Test")
-//                .role(Role.ADMIN)
-//                .build();
-//        
-//        User existingUser = User.builder()
-//                .user_id(1L)
-//                .firstName("TestUser1")
-//                .lastName("User1")
-//                .userName("TestUser1")
-//                .password("Test")
-//                .role(Role.USER)
-//                .build();
-//
-//        UserDTO userDTO = UserDTO.builder()
-//                .username("NewTestUser1")
-//                .lastName("NewUser1")
-//                .firstName("NewTestUser1")
-//                .password("NewTest")
-//                .role(Role.USER)
-//                .build();
-//
-//        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-//        when(userRepository.findByUserName("AdminUser")).thenReturn(Optional.of(adminUser));
-//        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-//        
-//        
-//        //Act
-//        User updatedUser = userService.updateUser(1L, userDTO);
-//        
-//        //Assert
-//        assertNotNull(updatedUser);
-//        assertEquals(updatedUser.getFirstName(), userDTO.getFirstName());
-//        assertEquals(updatedUser.getUsername(), userDTO.getUsername());
-//        assertEquals(updatedUser.getLastName(), userDTO.getLastName());
-//        assertEquals(updatedUser.getPassword(), userDTO.getPassword());
-//        assertEquals(updatedUser.getRole(), userDTO.getRole());
-//        
-//        //Ensure Stubbed Methods Are Called
-//        verify(userRepository, times(1)).findById(1L);
-//        verify(userRepository, times(1)).save(any(User.class));
-//    }
-    
-	@Test
-	@WithMockUser(username = "TestUser2")
-	void test_updateUser_isUnauthorized() {
-		// Mock
+    @Test
+    @Transactional
+    @WithMockUser(username = "AdminUser")
+    public void test_updateUser_asAdmin_isSuccessful() {
+        // Arrange
+        User adminUser = User.builder()
+                .user_id(1L)
+                .firstName("Admin")
+                .lastName("User")
+                .userName("AdminUser")
+                .password("Test")
+                .role(Role.ADMIN)
+                .build();
+        
         User existingUser = User.builder()
                 .user_id(1L)
                 .firstName("TestUser1")
@@ -254,8 +214,61 @@ public class UserServiceTests {
                 .password("NewTest")
                 .role(Role.USER)
                 .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByUserName("AdminUser")).thenReturn(Optional.of(adminUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        
+        
+        //Act
+        User updatedUser = userService.updateUser(1L, userDTO);
+        
+        //Assert
+        assertNotNull(updatedUser);
+        assertEquals(updatedUser.getFirstName(), userDTO.getFirstName());
+        assertEquals(updatedUser.getUsername(), userDTO.getUsername());
+        assertEquals(updatedUser.getLastName(), userDTO.getLastName());
+        assertEquals(updatedUser.getPassword(), userDTO.getPassword());
+        assertEquals(updatedUser.getRole(), userDTO.getRole());
+        
+        //Ensure Stubbed Methods Are Called
+        verify(userRepository, times(1)).findById(1L);
+        verify(userRepository, times(1)).save(any(User.class));
+        verify(userRepository, times(1)).findByUserName("AdminUser");
+    }
+    
+	@Test
+	@WithMockUser(username = "TestUser2")
+	void test_updateUser_isUnauthorized() {
+		// Mock
+        User existingUser = User.builder()
+                .user_id(1L)
+                .firstName("TestUser1")
+                .lastName("User1")
+                .userName("TestUser1")
+                .password("Test")
+                .role(Role.USER)
+                .build();
+        
+        User authUser = User.builder()
+                .user_id(1L)
+                .firstName("TestUser2")
+                .lastName("User2")
+                .userName("TestUser2")
+                .password("Test")
+                .role(Role.USER)
+                .build();
+
+        UserDTO userDTO = UserDTO.builder()
+                .username("NewTestUser1")
+                .lastName("NewUser1")
+                .firstName("NewTestUser1")
+                .password("NewTest")
+                .role(Role.USER)
+                .build();
         
         when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByUserName("TestUser2")).thenReturn(Optional.of(authUser));
         
         //Act
         UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
@@ -268,6 +281,7 @@ public class UserServiceTests {
         
         //Ensure Stubbed Method Is Called
         verify(userRepository, times(1)).findById(1L); 
+        verify(userRepository, times(1)).findByUserName("TestUser2");
 	}
 	
 	@Test
@@ -295,7 +309,7 @@ public class UserServiceTests {
 
 	@Test
 	@WithMockUser("TestUser1")
-	void test_deleteUser_isSuccesful() {
+	void test_deleteUser_asUser_isSuccesful() {
 		// Mock
         User existingUser = User.builder()
                 .user_id(1L)
@@ -306,12 +320,46 @@ public class UserServiceTests {
                 .role(Role.USER)
                 .build();
         when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByUserName("TestUser1")).thenReturn(Optional.of(existingUser));
         
         //Act
         userService.deleteUser(1L);
         
         //Assert
         verify(userRepository, times(1)).findById(1L);
+        verify(userRepository, times(1)).findByUserName("TestUser1");
+	}
+	
+	@Test
+	@WithMockUser("AdminUser")
+	void test_deleteUser_asAdmin_isSuccesful() {
+		//Mock
+		User adminUser = User.builder()
+                .user_id(1L)
+                .firstName("Admin")
+                .lastName("User")
+                .userName("AdminUser")
+                .password("Test")
+                .role(Role.ADMIN)
+                .build();
+		
+        User existingUser = User.builder()
+                .user_id(1L)
+                .firstName("TestUser1")
+                .lastName("User1")
+                .userName("TestUser1")
+                .password("Test")
+                .role(Role.USER)
+                .build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByUserName("AdminUser")).thenReturn(Optional.of(adminUser));
+        
+        //Act
+        userService.deleteUser(1L);
+        
+        //Assert
+        verify(userRepository, times(1)).findById(1L);
+        verify(userRepository, times(1)).findByUserName("AdminUser");
 	}
 	
 	@Test
@@ -342,7 +390,19 @@ public class UserServiceTests {
                 .password("Test")
                 .role(Role.USER)
                 .build();
+        
+		// Mock
+        User authUser = User.builder()
+                .user_id(1L)
+                .firstName("TestUser2")
+                .lastName("User2")
+                .userName("TestUser2")
+                .password("Test")
+                .role(Role.USER)
+                .build();
+        
         when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByUserName("TestUser2")).thenReturn(Optional.of(authUser));
         
 		//Act
 		UnauthorizedException exception = assertThrows(UnauthorizedException.class,() -> {
@@ -352,6 +412,8 @@ public class UserServiceTests {
 		//Assert
 		assertNotNull(exception);
 		assertEquals(exception.getLocalizedMessage(), "TestUser1 is unauthorized to perform this action.");
+		verify(userRepository, times(1)).findById(1L);
+		verify(userRepository, times(1)).findByUserName("TestUser2");
 	}
 
 }
