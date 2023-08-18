@@ -41,10 +41,7 @@ public class MessageController {
 	 * \ TODO: Consider adding funcitonality to a MessageService class to decluter
 	 * funcitonality (good practice)
 	 */
-	private final MessageRepository messageRepository;
 	private final MessageModelAssembler messageAssembler;
-	private final UserRepository userRepository;
-	private final ConversationRepository conversationRepository;
 	private final MessageService messageService;
 
 	/**

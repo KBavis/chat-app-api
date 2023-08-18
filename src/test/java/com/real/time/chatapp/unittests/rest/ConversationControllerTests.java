@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -105,6 +107,10 @@ public class ConversationControllerTests {
 
 		// Assert
 		validateModel(response);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(conversationService, times(1)).getAllConversations();
+		verify(converationAssembler, times(2)).toModel(any(Conversation.class));
 	}
 
 	@Test
@@ -117,6 +123,9 @@ public class ConversationControllerTests {
 		});
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 		assertEquals("Unauthorized access", exception.getReason());
+		
+		//Ensure Stubbed Methods Are Called
+		verify(conversationService, times(1)).getAllConversations();
 	}
 
 	@Test
@@ -129,6 +138,10 @@ public class ConversationControllerTests {
 
 		// Assert
 		validateModel(response);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(conversationService, times(1)).getAllUserConversations();
+		verify(converationAssembler, times(2)).toModel(any(Conversation.class));
 	}
 
 	@Test
@@ -144,6 +157,10 @@ public class ConversationControllerTests {
 		assertTrue(entityModel.getLinks().hasLink(conversation1Link.getRel()));
 		assertTrue(entityModel.getLinks().hasLink(conversationAllLink.getRel()));
 		assertEquals(entityModel.getContent(), conversation1);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(conversationService, times(1)).getConversationById(1L);
+		verify(converationAssembler, times(1)).toModel(conversation1);
 
 	}
 
@@ -159,6 +176,9 @@ public class ConversationControllerTests {
 
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 		assertEquals("Unauthorized access", exception.getReason());
+		
+		//Ensure Stubbed Methods Are Called
+		verify(conversationService, times(1)).getConversationById(1L);
 	}
 
 	@Test
@@ -172,6 +192,10 @@ public class ConversationControllerTests {
 
 		// Assert
 		validateModel(response);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(conversationService, times(1)).searchConversationsByDate(any());
+		verify(converationAssembler, times(2)).toModel(any(Conversation.class));
 	}
 
 	@Test
@@ -184,6 +208,10 @@ public class ConversationControllerTests {
 
 		// Assert
 		validateModel(response);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(conversationService, times(1)).searchConversationsWithUser(1L);
+		verify(converationAssembler, times(2)).toModel(any(Conversation.class));
 	}
 
 	@SuppressWarnings("static-access")
@@ -198,6 +226,10 @@ public class ConversationControllerTests {
 		
 		//Assert
 		validateResponse(responseEntity);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(conversationService, times(1)).createConversation(2L);
+		verify(converationAssembler, times(1)).toModel(conversation1);
 	}
 
 	@Test
@@ -212,6 +244,10 @@ public class ConversationControllerTests {
 		
 		//Assert
 		validateResponse(responseEntity);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(conversationService, times(1)).updateConversation(1L, dto);
+		verify(converationAssembler, times(1)).toModel(conversation1);
 	}
 
 	@Test
@@ -228,6 +264,9 @@ public class ConversationControllerTests {
 		
 		assertEquals(exception.getStatusCode(), HttpStatus.UNAUTHORIZED);
 		assertEquals(exception.getReason(), "Unauthorized access");
+		
+		//Ensure Stubbed Methods Are Called
+		verify(conversationService, times(1)).updateConversation(1L, dto);
 	}
 
 	@Test
@@ -241,6 +280,10 @@ public class ConversationControllerTests {
 		
 		//Assert
 		validateResponse(responseEntity);
+		
+		//Ensure Stubbed Methods Are Called
+		verify(conversationService, times(1)).addUserToConversation(1L, 2L);
+		verify(converationAssembler, times(1)).toModel(conversation1);
 	}
 
 	@Test
@@ -257,6 +300,9 @@ public class ConversationControllerTests {
 		//Assert
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 		assertEquals(exception.getReason(), "Unauthorized access");
+		
+		//Ensure Stubbed Methods Are Called
+		verify(conversationService, times(1)).addUserToConversation(1L, 2L);
 	}
 
 	@Test
@@ -264,13 +310,13 @@ public class ConversationControllerTests {
 	void test_leaveConversation_isSuccesful() {
 		//Mock 
 	    when(conversationRepository.findById(1L)).thenReturn(Optional.of(conversation1));
-	    when(conversationService.getUser()).thenReturn(new User());
 	    
 	    //Act
 	    ResponseEntity<?> responseEntity = conversationController.leaveConversation(1L);
 	    
 	    //Assert
 	    assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+	    
 	}
 
 	@Test
@@ -286,6 +332,9 @@ public class ConversationControllerTests {
 		//Assert
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 		assertEquals(exception.getReason(), "Unauthorized access");
+		
+		//Ensure Stubbed Methods Are Called
+		verify(conversationService, times(1)).leaveConversation(1L);
 	}
 
 	@Test
@@ -312,6 +361,9 @@ public class ConversationControllerTests {
 		//Assert
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 		assertEquals(exception.getReason(), "Unauthorized access");
+		
+		//Ensure Stubbed Methods Are Called
+		verify(conversationService, times(1)).deleteConversation(1L);
 		
 	}
 	

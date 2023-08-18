@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.real.time.chatapp.Assemblers.UserModelAssembler;
 import com.real.time.chatapp.ControllerServices.AuthenticationService;
@@ -105,14 +106,14 @@ public class UserController {
 	 */
 	@PutMapping("users/{id}")
 	public ResponseEntity<?> updateUser(@RequestBody UserDTO newUser, @PathVariable Long id) {
+		EntityModel<User> entityModel;
 		try {
 			User updatedUser = userService.updateUser(id, newUser);
-			EntityModel<User> entityModel = userAssembler.toModel(updatedUser);
-			return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
+			entityModel = userAssembler.toModel(updatedUser);
 		} catch(UnauthorizedException ex) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You are not authorized to perform this action.");
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
 		}
-
+		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
 	}
 
 	/**
@@ -125,10 +126,10 @@ public class UserController {
 	public ResponseEntity<?> deleteUser(@PathVariable Long id) {
 		try {
 			userService.deleteUser(id);
-			return ResponseEntity.noContent().build();
 		}catch(UnauthorizedException ex) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You are not authorized to perform this action.");
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
 		}
+		return ResponseEntity.noContent().build();
 
 	}
 }
