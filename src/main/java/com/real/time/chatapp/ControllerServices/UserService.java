@@ -75,7 +75,6 @@ public class UserService {
 	public User updateUser(Long id, UserDTO userDTO) {
 		User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
-		System.out.println("Validate User: " + validateUser(user));
 		if (!validateUser(user)) {
 			throw new UnauthorizedException(user);
 		}
@@ -123,7 +122,6 @@ public class UserService {
 
 	/**
 	 * Helper Function To Validate A User
-	 * TODO: Update Below Functionality to Check if AUTHENTICATED USER is Admin, Not User Being Passed In
 	 * 
 	 * @param user
 	 * @return
@@ -131,16 +129,11 @@ public class UserService {
 	public boolean validateUser(User user) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		String authenticatedUsername = authentication.getName().trim();
+		User authUser = userRepository.findByUserName(authenticatedUsername).orElseThrow(() -> new UserNotFoundException(authenticatedUsername));
 
-		if (user.getRole() != Role.ADMIN && !user.getUsername().trim().equals(authenticatedUsername)) {
+		if (authUser.getRole() != Role.ADMIN && !user.getUsername().trim().equals(authenticatedUsername)) {
 			return false;
 		}
-
-		// Get Authenticated User
-//        User authUser = userRepository.findByUserName(authenticatedUsername).orElseThrow(() -> new UserNotFoundException(authenticatedUsername));
-//		if(authUser.getRole() != Role.ADMIN && !user.getUsername().trim().equals(authenticatedUsername)) {
-//			return false;
-//		}
 		return true;
 	}
 }

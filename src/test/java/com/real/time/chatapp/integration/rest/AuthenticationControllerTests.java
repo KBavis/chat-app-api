@@ -124,10 +124,10 @@ public class AuthenticationControllerTests {
 	 */
 	@Test
 	@Transactional
-	void test_authenticate_wrongPassword_returns403() throws Exception {
+	void test_authenticate_wrongPassword_returns401() throws Exception {
 		testHelper.signUp("testUser", "test");
 
-		testHelper.login("testUser", "wrongPassword").andExpect(status().isForbidden());
+		testHelper.login("testUser", "wrongPassword").andExpect(status().isUnauthorized());
 	}
 
 	/**
@@ -137,10 +137,10 @@ public class AuthenticationControllerTests {
 	 */
 	@Test
 	@Transactional
-	void test_authenticate_wrongUser_returns403() throws Exception {
+	void test_authenticate_wrongUser_returns401() throws Exception {
 		testHelper.signUp("testUser", "test");
 
-		testHelper.login("wrongUser", "test").andExpect(status().isForbidden());
+		testHelper.login("wrongUser", "test").andExpect(status().isUnauthorized());
 	}
 	
 	/**

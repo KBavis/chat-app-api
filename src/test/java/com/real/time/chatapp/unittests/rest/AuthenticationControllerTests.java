@@ -70,6 +70,9 @@ public class AuthenticationControllerTests {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
         assertEquals("dummyToken", responseEntity.getBody().getToken());
+        
+        //Ensure Stubbed Methods Are Called
+        verify(authService, times(1)).register(registerRequest);
 	}
 	
     @Test
@@ -86,7 +89,9 @@ public class AuthenticationControllerTests {
         });
         assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
         assertEquals("The requested username is already taken.", exception.getReason());
-
+        
+        //Ensure Stubbed Methods Are Called
+        verify(authService, times(1)).register(registerRequest);
     }
     
     @Test
@@ -103,6 +108,9 @@ public class AuthenticationControllerTests {
         });
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
         assertEquals("The register request is invalid.", exception.getReason());
+        
+        //Ensure Stubbed Methods Are Called
+        verify(authService, times(1)).register(registerRequest);
     }
 
     
@@ -124,6 +132,9 @@ public class AuthenticationControllerTests {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
         assertEquals("dummyToken", responseEntity.getBody().getToken());
+        
+        //Ensure Stubbed Methods Are Called
+        verify(authService, times(1)).authenticate(authRequest);
     }
     
     @Test
@@ -141,6 +152,9 @@ public class AuthenticationControllerTests {
         });
         assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
         assertEquals("The provided credentials are invalid.", exception.getReason());
+        
+        //Ensure Stubbed Methods Are Called
+        verify(authService, times(1)).authenticate(authRequest);
     }
     
     @Test
@@ -158,5 +172,8 @@ public class AuthenticationControllerTests {
         });
         assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
         assertEquals("The provided credentials are invalid.", exception.getReason());
+        
+        //Ensure Stubbed Methods Are Called
+        verify(authService, times(1)).authenticate(authRequest);
     }
 }
