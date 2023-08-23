@@ -1,6 +1,9 @@
 package com.real.time.chatapp.integration.rest;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+
+import java.io.UnsupportedEncodingException;
 
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -10,9 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.real.time.chatapp.Auth.AuthenticationRequest;
 import com.real.time.chatapp.Auth.AuthenticationResponse;
 import com.real.time.chatapp.Auth.RegisterRequest;
-import com.real.time.chatapp.Entities.User;
-import com.real.time.chatapp.Exception.UserNotFoundException;
-import com.real.time.chatapp.Repositories.ConversationRepository;
+import com.real.time.chatapp.Entities.Conversation;
 import com.real.time.chatapp.Repositories.UserRepository;
 import com.real.time.chatapp.Util.JsonUtil;
 
@@ -53,6 +54,20 @@ public class RestIntegrationTestHelper {
 				.contentType(MediaType.APPLICATION_JSON)).andReturn().getResponse().getContentAsString();
 		AuthenticationResponse authResponse = JsonUtil.fromJson(loginReturnValueJson, AuthenticationResponse.class);
 		return authResponse;
+	}
+	
+	protected Conversation addConversation(Long userID, AuthenticationResponse authResponse) throws Exception {
+		String createConversationReturnValueJson = mockMvc.perform(post("/conversations/" + userID)
+				.header("Authorization", "Bearer " + authResponse.getToken())).andReturn().getResponse().getContentAsString();
+		System.out.println(createConversationReturnValueJson);
+		return JsonUtil.fromJson(createConversationReturnValueJson, Conversation.class);
+	}
+	
+	protected Conversation addUserToConversation(Long conversationId, Long userId, AuthenticationResponse authResponse) throws Exception {
+		String addUserToConvoReturnValueJson = mockMvc.perform(put("/conversations/" + conversationId + "/" + userId)
+				.header("Authorization", "Bearer " + authResponse.getToken())).andReturn().getResponse().getContentAsString();
+		
+		return JsonUtil.fromJson(addUserToConvoReturnValueJson, Conversation.class);
 	}
 
 }
