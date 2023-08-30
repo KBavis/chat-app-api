@@ -1,29 +1,34 @@
 package com.real.time.chatapp.integration.rest;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.real.time.chatapp.Auth.AuthenticationResponse;
 import com.real.time.chatapp.Auth.LoadAdmin;
 import com.real.time.chatapp.Entities.Conversation;
 import com.real.time.chatapp.Entities.User;
 import com.real.time.chatapp.Exception.UserNotFoundException;
 import com.real.time.chatapp.Repositories.UserRepository;
-import com.real.time.chatapp.Util.JsonUtil;
 
 import jakarta.transaction.Transactional;
 
@@ -31,23 +36,22 @@ import jakarta.transaction.Transactional;
 @AutoConfigureMockMvc
 @DirtiesContext
 public class ConversationControllerTests {
-	
+
 	@Autowired
 	private MockMvc mockMvc;
-	
+
 	@Autowired
 	private UserRepository userRepository;
-	
+
 	@Autowired
 	private PasswordEncoder passwordEncoder;
-	
+
 	private RestIntegrationTestHelper testHelper;
-	
-	
+
 	private AuthenticationResponse adminAuthResponse;
-	
+
 	String adminPassword;
-	
+
 	User u1;
 	User u2;
 	User u3;
@@ -59,13 +63,15 @@ public class ConversationControllerTests {
 	Conversation c1;
 	Conversation c2;
 	Conversation c3;
-	
-	@BeforeEach 
-	void setUp() throws Exception{
-		//Initalize Test Helper 
+	ObjectMapper objectMapper;
+
+	@BeforeEach
+	void setUp() throws Exception {
+		// Initalize Test Helper
 		testHelper = new RestIntegrationTestHelper(mockMvc, userRepository);
-		
-		//Set Up Admin Authentication 
+		objectMapper = new ObjectMapper();
+
+		// Set Up Admin Authentication
 		Properties properties = new Properties();
 		try (InputStream inputStream = LoadAdmin.class.getClassLoader().getResourceAsStream("application.properties")) {
 			properties.load(inputStream);
@@ -74,46 +80,62 @@ public class ConversationControllerTests {
 		}
 		adminPassword = properties.getProperty("admin.password");
 		adminAuthResponse = testHelper.loginAndReturnToken("AdminUser", adminPassword);
-		
-		//Sign Up Mock Users 
+
+		// Sign Up Mock Users
 		testHelper.signUp("u1", "password");
 		testHelper.signUp("u2", "password");
 		testHelper.signUp("u3", "password");
 		testHelper.signUp("u4", "password");
-		
-		//Fetch Signed Up Users 
+
+		// Fetch Signed Up Users
 		u1 = userRepository.findByUserName("u1").orElseThrow(() -> new UserNotFoundException("u1"));
 		u2 = userRepository.findByUserName("u2").orElseThrow(() -> new UserNotFoundException("u2"));
 		u3 = userRepository.findByUserName("u3").orElseThrow(() -> new UserNotFoundException("u3"));
 		u4 = userRepository.findByUserName("u4").orElseThrow(() -> new UserNotFoundException("u4"));
-		
-		//Set Up User Authentications 
+
+		// Set Up User Authentications
 		u1_auth = testHelper.loginAndReturnToken("u1", "password");
 		u2_auth = testHelper.loginAndReturnToken("u2", "password");
 		u3_auth = testHelper.loginAndReturnToken("u3", "password");
 		u4_auth = testHelper.loginAndReturnToken("u4", "password");
-		
+
 		/**
 		 * Set Up Mock Conversations
 		 */
-		//Convo 1 Contains All Users
+		// Convo 1 Contains All Users
 		c1 = testHelper.addConversation(u2.getUser_id(), u1_auth);
 		testHelper.addUserToConversation(c1.getConversation_id(), u3.getUser_id(), u1_auth);
 		testHelper.addUserToConversation(c1.getConversation_id(), u4.getUser_id(), u1_auth);
-		
-		//Convo 2 Contains U1 and U2
+
+		// Convo 2 Contains U1 and U2
 		c2 = testHelper.addConversation(u2.getUser_id(), u1_auth);
-		
-		//Convo 3 Contains U3 and U4
+
+		// Convo 3 Contains U3 and U4
 		c3 = testHelper.addConversation(u4.getUser_id(), u4_auth);
 	}
-	
+
 	@Test
 	@Transactional
-	void test_getAllConversations() throws Exception{
-		//Create Conversations
-		String responseJson = mockMvc.perform(get("/conversations").header("Authorization", "Bearer " + adminAuthResponse.getToken())).andReturn().getResponse().getContentAsString();
-		CollectionModel<EntityModel<Conversation>> conversations = JsonUtil.fromJson(responseJson, CollectionModel<EntityModel>);
+	void test_getAllConversations() throws Exception {
+		// Fetching Converastions
+		String responseJson = mockMvc
+				.perform(get("/conversations").header("Authorization", "Bearer " + adminAuthResponse.getToken()))
+				.andReturn().getResponse().getContentAsString();
+
+		//Extracting Covnersations From Response
+		JsonNode rootNode = objectMapper.readTree(responseJson);
+		JsonNode conversationsNode = rootNode.path("_embedded").path("conversations");
+		List<EntityModel<Conversation>> entityModels = objectMapper.readValue(conversationsNode.toString(), new TypeReference<List<EntityModel<Conversation>>>() {});
+		List<Conversation> conversations = entityModels.stream()
+				.map(entityModel -> entityModel.getContent())
+				.collect(Collectors.toList());
 		
+		//Assertions
+		assertEquals(conversations.size(), 3);
+		
+		//Ensure One Conversation Contains All Users, Another Contains Only U1 & U2, and the contains U3 & U4
+
+		
+
 	}
 }
