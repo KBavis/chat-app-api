@@ -1,9 +1,10 @@
 package com.real.time.chatapp.Entities;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import com.fasterxml.jackson.annotation.*;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -44,8 +45,11 @@ import lombok.Setter;
 @Getter
 @Setter
 public class User implements UserDetails{
+	
+	private static final long serialVersionUID = 1L;
 
 	@Id
+	@JsonProperty("user_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long user_id;
 	private String userName;
@@ -56,8 +60,8 @@ public class User implements UserDetails{
 	//Enumerated Tells Spring that this is an Enum
 	@Enumerated(EnumType.STRING)
 	private Role role;
-
-	@ManyToMany(fetch = FetchType.LAZY)
+	
+	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "user_conversations", joinColumns = {
 			@JoinColumn(name = "user_id", referencedColumnName = "user_id") }, inverseJoinColumns = {
 					@JoinColumn(name = "conversation_id", referencedColumnName = "conversation_id") })
@@ -66,7 +70,7 @@ public class User implements UserDetails{
 	@OneToMany(mappedBy = "sender")
 	private List<Message> sentMessages;
 
-	@ManyToMany(fetch = FetchType.LAZY)
+	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "user_recieved_messages", joinColumns = {
 			@JoinColumn(name = "user_id", referencedColumnName = "user_id") }, inverseJoinColumns = {
 					@JoinColumn(name = "message_id", referencedColumnName = "message_id") })
@@ -92,39 +96,46 @@ public class User implements UserDetails{
 	 *  We Return A List of This Users Roles (Admin or User)
 	 */
 	@Override
+	@JsonIgnore
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return List.of(new SimpleGrantedAuthority(role.name()));
 	}
 
 	@Override
+	@JsonProperty("userName")
 	public String getUsername() {
 		return userName;
 	}
 	
 	@Override
+	@JsonIgnore
 	public String getPassword() {
 		return password;
 	}
 
 	@Override
+	@JsonIgnore
 	public boolean isAccountNonExpired() {
 		// TODO Auto-generated method stub
 		return true;
 	}
 
 	@Override
+	@JsonIgnore
 	public boolean isAccountNonLocked() {
 		// TODO Auto-generated method stub
 		return true;
 	}
 
 	@Override
+	@JsonIgnore
 	public boolean isCredentialsNonExpired() {
 		// TODO Auto-generated method stub
 		return true;
 	}
 
 	@Override
+	@JsonIgnore
 	public boolean isEnabled() {
 		// TODO Auto-generated method stub
 		return true;

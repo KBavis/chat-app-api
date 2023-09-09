@@ -5,7 +5,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.real.time.chatapp.Util.ConversationUsersSerializer;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -38,7 +42,7 @@ public class Conversation {
 	/**
 	 * Many Conversations To Many Users
 	 */
-	@ManyToMany(mappedBy = "list_conversations", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+	@ManyToMany(mappedBy = "list_conversations", fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
 	private Set<User> conversation_users = new HashSet<>(); 
 
 	/**

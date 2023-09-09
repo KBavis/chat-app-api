@@ -4,9 +4,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -25,15 +23,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
 import com.real.time.chatapp.Assemblers.ConversationModelAssembler;
 import com.real.time.chatapp.ControllerServices.AuthenticationService;
 import com.real.time.chatapp.ControllerServices.ConversationService;
 import com.real.time.chatapp.DTO.ConversationDTO;
-import com.real.time.chatapp.Entities.Conversation;
-import com.real.time.chatapp.Entities.User;
-import com.real.time.chatapp.Exception.ConversationNotFoundException;
+import com.real.time.chatapp.DTO.ConversationResponseDTO;
 import com.real.time.chatapp.Exception.UnauthorizedException;
-import com.real.time.chatapp.Exception.UserNotFoundException;
 import com.real.time.chatapp.Repositories.ConversationRepository;
 import com.real.time.chatapp.Repositories.UserRepository;
 
@@ -54,8 +50,8 @@ public class ConversationController {
 	 * @return
 	 */
 	@GetMapping("/conversations")
-	public CollectionModel<EntityModel<Conversation>> all() {
-		List<EntityModel<Conversation>> entityModels;
+	public CollectionModel<EntityModel<ConversationResponseDTO>> all() {
+		List<EntityModel<ConversationResponseDTO>> entityModels;
 		try {
 			entityModels = conversationService.getAllConversations().stream().map(conversationAssembler::toModel)
 					.collect(Collectors.toList());
@@ -68,8 +64,8 @@ public class ConversationController {
 	}
 
 	@GetMapping("/userConversations")
-	public CollectionModel<EntityModel<Conversation>> getConversationByUser() {
-		List<EntityModel<Conversation>> entityModels = conversationService.getAllUserConversations().stream()
+	public CollectionModel<EntityModel<ConversationResponseDTO>> getConversationByUser() {
+		List<EntityModel<ConversationResponseDTO>> entityModels = conversationService.getAllUserConversations().stream()
 				.map(conversationAssembler::toModel).collect(Collectors.toList());
 
 		return CollectionModel.of(entityModels, linkTo(methodOn(ConversationController.class).all()).withSelfRel());
@@ -83,7 +79,7 @@ public class ConversationController {
 	 * @return
 	 */
 	@GetMapping("/conversations/{id}")
-	public EntityModel<Conversation> one(@PathVariable Long id) {
+	public EntityModel<ConversationResponseDTO> one(@PathVariable Long id) {
 		try {
 			return conversationAssembler.toModel(conversationService.getConversationById(id));
 		} catch (UnauthorizedException ex) {
@@ -98,10 +94,10 @@ public class ConversationController {
 	 * @return
 	 */
 	@GetMapping("/search/conversations")
-	public CollectionModel<EntityModel<Conversation>> findConversationsByDate(
+	public CollectionModel<EntityModel<ConversationResponseDTO>> findConversationsByDate(
 			@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
 
-		List<EntityModel<Conversation>> entityModels = conversationService.searchConversationsByDate(date).stream()
+		List<EntityModel<ConversationResponseDTO>> entityModels = conversationService.searchConversationsByDate(date).stream()
 				.map(conversationAssembler::toModel).collect(Collectors.toList());
 
 		return CollectionModel.of(entityModels,
@@ -115,8 +111,8 @@ public class ConversationController {
 	 * @return
 	 */
 	@GetMapping("/search/conversations/{id}")
-	public CollectionModel<EntityModel<Conversation>> findConversationsWithUser(@PathVariable Long id) {
-		List<EntityModel<Conversation>> entityModels = conversationService.searchConversationsWithUser(id).stream()
+	public CollectionModel<EntityModel<ConversationResponseDTO>> findConversationsWithUser(@PathVariable Long id) {
+		List<EntityModel<ConversationResponseDTO>> entityModels = conversationService.searchConversationsWithUser(id).stream()
 				.map(conversationAssembler::toModel).collect(Collectors.toList());
 
 		return CollectionModel.of(entityModels,
@@ -133,7 +129,7 @@ public class ConversationController {
 	@PostMapping("/conversations/{userId}")
 	public ResponseEntity<?> createConversationBetweenUsers(@PathVariable Long userId) {
 
-		EntityModel<Conversation> entityModel = conversationAssembler
+		EntityModel<ConversationResponseDTO> entityModel = conversationAssembler
 				.toModel(conversationService.createConversation(userId));
 		return ResponseEntity.created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()).body(entityModel);
 	}
@@ -148,7 +144,7 @@ public class ConversationController {
 	@PutMapping("/conversation/{conversationId}")
 	public ResponseEntity<?> updateConversation(@PathVariable Long conversationId,
 			@RequestBody ConversationDTO newConversationDTO) {
-		EntityModel<Conversation> entityModel;
+		EntityModel<ConversationResponseDTO> entityModel;
 		try {
 			entityModel = conversationAssembler
 					.toModel(conversationService.updateConversation(conversationId, newConversationDTO));
@@ -167,7 +163,7 @@ public class ConversationController {
 	 */
 	@PutMapping("/conversations/{conversationId}/{userId}")
 	public ResponseEntity<?> addUserToConversation(@PathVariable Long conversationId, @PathVariable Long userId) {
-		EntityModel<Conversation> entityModel;
+		EntityModel<ConversationResponseDTO> entityModel;
 		try {
 			entityModel = conversationAssembler
 					.toModel(conversationService.addUserToConversation(conversationId, userId));
