@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +36,7 @@ import com.real.time.chatapp.Assemblers.ConversationModelAssembler;
 import com.real.time.chatapp.ControllerServices.ConversationService;
 import com.real.time.chatapp.Controllers.ConversationController;
 import com.real.time.chatapp.DTO.ConversationDTO;
+import com.real.time.chatapp.DTO.ConversationResponseDTO;
 import com.real.time.chatapp.Entities.Conversation;
 import com.real.time.chatapp.Entities.User;
 import com.real.time.chatapp.Exception.UnauthorizedException;
@@ -67,8 +69,10 @@ public class ConversationControllerTests {
 	List<Conversation> mockConversations;
 	Conversation conversation1;
 	Conversation conversation2;
-	EntityModel<Conversation> mockEntityModel1;
-	EntityModel<Conversation> mockEntityModel2;
+	ConversationResponseDTO conversation1ResponseDTO;
+	ConversationResponseDTO conversation2ResponseDTO;
+	EntityModel<ConversationResponseDTO> mockEntityModel1;
+	EntityModel<ConversationResponseDTO> mockEntityModel2;
 	Link conversation1Link;
 	Link conversation2Link;
 	Link conversationAllLink;
@@ -103,7 +107,7 @@ public class ConversationControllerTests {
 		when(conversationService.getAllConversations()).thenReturn(mockConversations);
 
 		// Act
-		CollectionModel<EntityModel<Conversation>> response = conversationController.all();
+		CollectionModel<EntityModel<ConversationResponseDTO>> response = conversationController.all();
 
 		// Assert
 		validateModel(response);
@@ -134,7 +138,7 @@ public class ConversationControllerTests {
 		when(conversationService.getAllUserConversations()).thenReturn(mockConversations);
 
 		// Act
-		CollectionModel<EntityModel<Conversation>> response = conversationController.getConversationByUser();
+		CollectionModel<EntityModel<ConversationResponseDTO>> response = conversationController.getConversationByUser();
 
 		// Assert
 		validateModel(response);
@@ -150,13 +154,13 @@ public class ConversationControllerTests {
 		when(conversationService.getConversationById(1L)).thenReturn(conversation1);
 
 		// Act
-		EntityModel<Conversation> entityModel = conversationController.one(1L);
+		EntityModel<ConversationResponseDTO> entityModel = conversationController.one(1L);
 
 		// Assert
 		assertNotNull(entityModel);
 		assertTrue(entityModel.getLinks().hasLink(conversation1Link.getRel()));
 		assertTrue(entityModel.getLinks().hasLink(conversationAllLink.getRel()));
-		assertEquals(entityModel.getContent(), conversation1);
+		assertEquals(entityModel.getContent().getConversation_id(), conversation1.getConversation_id());
 		
 		//Ensure Stubbed Methods Are Called
 		verify(conversationService, times(1)).getConversationById(1L);
@@ -187,7 +191,7 @@ public class ConversationControllerTests {
 		when(conversationService.searchConversationsByDate(any())).thenReturn(mockConversations);
 
 		// Act
-		CollectionModel<EntityModel<Conversation>> response = conversationController
+		CollectionModel<EntityModel<ConversationResponseDTO>> response = conversationController
 				.findConversationsByDate(new Date());
 
 		// Assert
@@ -204,7 +208,7 @@ public class ConversationControllerTests {
 		when(conversationService.searchConversationsWithUser(1L)).thenReturn(mockConversations);
 
 		// Act
-		CollectionModel<EntityModel<Conversation>> response = conversationController.findConversationsWithUser(1L);
+		CollectionModel<EntityModel<ConversationResponseDTO>> response = conversationController.findConversationsWithUser(1L);
 
 		// Assert
 		validateModel(response);
@@ -383,13 +387,13 @@ public class ConversationControllerTests {
 	 * 
 	 * @param response
 	 */
-	void validateModel(CollectionModel<EntityModel<Conversation>> response) {
+	void validateModel(CollectionModel<EntityModel<ConversationResponseDTO>> response) {
 		// Validate CollectionModel
 		assertNotNull(response);
 		assertTrue(response.getLinks().hasLink(conversationAllLink.getRel()));
 
 		// Extract EntityModels from CollectionModel
-		List<EntityModel<Conversation>> entityModels = response.getContent().stream().collect(Collectors.toList());
+		List<EntityModel<ConversationResponseDTO>> entityModels = response.getContent().stream().collect(Collectors.toList());
 
 		// Ensure Our Collectiton Model Has Our Two Mocked Entity Models
 		assertNotNull(entityModels);
@@ -402,8 +406,8 @@ public class ConversationControllerTests {
 		assertTrue(entityModels.get(1).getLinks().hasLink(conversation2Link.getRel()));
 
 		// Ensure The EntityModels Content Is Equal To Corresponding Conversation
-		assertEquals(entityModels.get(0).getContent(), conversation1);
-		assertEquals(entityModels.get(1).getContent(), conversation2);
+		assertEquals(entityModels.get(0).getContent().getConversation_id(), conversation1.getConversation_id());
+		assertEquals(entityModels.get(1).getContent().getConversation_id(), conversation2.getConversation_id());
 	}
 	
 	/**
@@ -412,9 +416,17 @@ public class ConversationControllerTests {
 	 * @param conversation
 	 * @return
 	 */
-	EntityModel<Conversation> mockEntityModel(Conversation conversation) {
-		return EntityModel.of(conversation,
-				linkTo(methodOn(ConversationController.class).one(conversation.getConversation_id())).withSelfRel(),
-				linkTo(methodOn(ConversationController.class).all()).withRel("/conversations"));
-	}
+    public EntityModel<ConversationResponseDTO> mockEntityModel(Conversation conversation) {
+        ConversationResponseDTO responseDTO = new ConversationResponseDTO();
+        responseDTO.setConversation_id(conversation.getConversation_id());
+        responseDTO.setConversationStart(conversation.getConversationStart());
+        responseDTO.setNumUsers(conversation.getNumUsers());
+        responseDTO.setMessages(conversation.getMessages());
+        responseDTO.setUsers(new ArrayList<>(conversation.getConversation_users()));
+
+        return EntityModel.of(responseDTO,
+                linkTo(methodOn(ConversationController.class).one(conversation.getConversation_id())).withSelfRel(),
+                linkTo(methodOn(ConversationController.class).all()).withRel("/conversations")
+        );
+    }
 }
