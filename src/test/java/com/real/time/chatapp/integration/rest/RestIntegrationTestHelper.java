@@ -21,7 +21,7 @@ import com.real.time.chatapp.Util.JsonUtil;
  * 
  * @author Kellen Bavis
  * 
- *         Helper Class for AuthenticationControllerTests
+ *         Helper Class for IntegrationControllerTests
  */
 
 public class RestIntegrationTestHelper {
@@ -59,7 +59,6 @@ public class RestIntegrationTestHelper {
 	protected Conversation addConversation(Long userID, AuthenticationResponse authResponse) throws Exception {
 		String createConversationReturnValueJson = mockMvc.perform(post("/conversations/" + userID)
 				.header("Authorization", "Bearer " + authResponse.getToken())).andReturn().getResponse().getContentAsString();
-		System.out.println(createConversationReturnValueJson);
 		return JsonUtil.fromJson(createConversationReturnValueJson, Conversation.class);
 	}
 	
