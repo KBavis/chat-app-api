@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.real.time.chatapp.Util.ConversationUsersSerializer;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;

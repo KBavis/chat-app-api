@@ -26,11 +26,9 @@ import org.springframework.web.server.ResponseStatusException;
 import com.real.time.chatapp.Assemblers.MessageModelAssembler;
 import com.real.time.chatapp.ControllerServices.MessageService;
 import com.real.time.chatapp.DTO.MessageDTO;
+import com.real.time.chatapp.DTO.MessageResponseDTO;
 import com.real.time.chatapp.Entities.Message;
 import com.real.time.chatapp.Exception.UnauthorizedException;
-import com.real.time.chatapp.Repositories.ConversationRepository;
-import com.real.time.chatapp.Repositories.MessageRepository;
-import com.real.time.chatapp.Repositories.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -50,11 +48,11 @@ public class MessageController {
 	 * @return
 	 */
 	@GetMapping("/messages")
-	public CollectionModel<EntityModel<Message>> all() {
-		List<EntityModel<Message>> messages;
+	public CollectionModel<EntityModel<MessageResponseDTO>> all() {
+		List<EntityModel<MessageResponseDTO>> messages;
 		try {
-			messages = messageService.getAllMessages().stream()
-					.map(messageAssembler::toModel).collect(Collectors.toList());
+			messages = messageService.getAllMessages().stream().map(messageAssembler::toModel)
+					.collect(Collectors.toList());
 		} catch (UnauthorizedException ex) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
 		}
@@ -69,10 +67,10 @@ public class MessageController {
 	 * @return
 	 */
 	@GetMapping("/userMessages")
-	public CollectionModel<EntityModel<Message>> getUserMessages() {
-		
-		List<EntityModel<Message>> messages = messageService.getAllUserMessages().stream().map(messageAssembler::toModel)
-					.collect(Collectors.toList());
+	public CollectionModel<EntityModel<MessageResponseDTO>> getUserMessages() {
+
+		List<EntityModel<MessageResponseDTO>> messages = messageService.getAllUserMessages().stream()
+				.map(messageAssembler::toModel).collect(Collectors.toList());
 		return CollectionModel.of(messages, linkTo(methodOn(MessageController.class).all()).withSelfRel());
 	}
 
@@ -83,11 +81,11 @@ public class MessageController {
 	 * @return
 	 */
 	@GetMapping("/messages/{id}")
-	public EntityModel<Message> one(@PathVariable Long id) {
+	public EntityModel<MessageResponseDTO> one(@PathVariable Long id) {
 		Message msg;
 		try {
-			 msg = messageService.getMessageById(id);
-		} catch(UnauthorizedException ex) {
+			msg = messageService.getMessageById(id);
+		} catch (UnauthorizedException ex) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
 		}
 		return messageAssembler.toModel(msg);
@@ -100,11 +98,11 @@ public class MessageController {
 	 * @return
 	 */
 	@GetMapping("/messages/conversations/{id}")
-	public CollectionModel<EntityModel<Message>> getConversationMessages(@PathVariable Long id) {
-		List<EntityModel<Message>> entityModels;
+	public CollectionModel<EntityModel<MessageResponseDTO>> getConversationMessages(@PathVariable Long id) {
+		List<EntityModel<MessageResponseDTO>> entityModels;
 		try {
 			entityModels = messageService.getConversationMessages(id).stream().map(messageAssembler::toModel)
-					.collect(Collectors.toList());	
+					.collect(Collectors.toList());
 		} catch (UnauthorizedException ex) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
 		}
@@ -120,8 +118,8 @@ public class MessageController {
 	 * @return
 	 */
 	@GetMapping("/search/messages/content")
-	public CollectionModel<EntityModel<Message>> searchMessagesByContent(@RequestParam("content") String content) {
-		List<EntityModel<Message>> entityModels = messageService.searchMessagesByContent(content).stream()
+	public CollectionModel<EntityModel<MessageResponseDTO>> searchMessagesByContent(@RequestParam("content") String content) {
+		List<EntityModel<MessageResponseDTO>> entityModels = messageService.searchMessagesByContent(content).stream()
 				.map(messageAssembler::toModel).collect(Collectors.toList());
 
 		return CollectionModel.of(entityModels,
@@ -135,9 +133,9 @@ public class MessageController {
 	 * @return
 	 */
 	@GetMapping("/search/messages/date")
-	public CollectionModel<EntityModel<Message>> searchMessagesByDateSent(
+	public CollectionModel<EntityModel<MessageResponseDTO>> searchMessagesByDateSent(
 			@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
-		List<EntityModel<Message>> entityModels = messageService.searchMessagesByDate(date).stream()
+		List<EntityModel<MessageResponseDTO>> entityModels = messageService.searchMessagesByDate(date).stream()
 				.map(messageAssembler::toModel).collect(Collectors.toList());
 
 		return CollectionModel.of(entityModels,
@@ -150,8 +148,8 @@ public class MessageController {
 	 * @return
 	 */
 	@GetMapping("/search/messages/read")
-	public CollectionModel<EntityModel<Message>> searchMessagesByIsRead() {
-		List<EntityModel<Message>> entityModels = messageService.searchMessagesByRead().stream()
+	public CollectionModel<EntityModel<MessageResponseDTO>> searchMessagesByIsRead() {
+		List<EntityModel<MessageResponseDTO>> entityModels = messageService.searchMessagesByRead().stream()
 				.map(messageAssembler::toModel).collect(Collectors.toList());
 
 		return CollectionModel.of(entityModels,
@@ -165,7 +163,7 @@ public class MessageController {
 	 */
 	@PostMapping("/messages/{conversationId}")
 	public ResponseEntity<?> newMessage(@RequestBody MessageDTO messageDTO, @PathVariable Long conversationId) {
-		EntityModel<Message> entityModel;
+		EntityModel<MessageResponseDTO> entityModel;
 		try {
 			entityModel = messageAssembler.toModel(messageService.createMessage(messageDTO, conversationId));
 		} catch (UnauthorizedException ex) {
@@ -184,7 +182,7 @@ public class MessageController {
 	 */
 	@PutMapping("/messages/{id}")
 	public ResponseEntity<?> updateMessage(@RequestBody MessageDTO newMessage, @PathVariable Long id) {
-		EntityModel<Message> entityModel;	
+		EntityModel<MessageResponseDTO> entityModel;
 		try {
 			entityModel = messageAssembler.toModel(messageService.updateMessage(newMessage, id));
 		} catch (UnauthorizedException ex) {
@@ -202,7 +200,7 @@ public class MessageController {
 	public ResponseEntity<?> deleteMessage(@PathVariable Long id) {
 		try {
 			messageService.deleteMessage(id);
-		}catch(UnauthorizedException ex) {
+		} catch (UnauthorizedException ex) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
 		}
 		return ResponseEntity.noContent().build();

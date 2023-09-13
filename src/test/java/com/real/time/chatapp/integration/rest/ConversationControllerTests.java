@@ -81,6 +81,7 @@ public class ConversationControllerTests {
 	ObjectMapper objectMapper;
 
 	@BeforeEach
+	@Transactional
 	void setUp() throws Exception {
 		// Initalize Test Helper
 		testHelper = new RestIntegrationTestHelper(mockMvc, userRepository);
@@ -155,40 +156,40 @@ public class ConversationControllerTests {
 			boolean u3Found = false;
 			boolean u4Found = false;
 			
-			if(c.getConversation_id() == c1.getConversation_id()) {
+			if(c.getConversation_id().equals(c1.getConversation_id())){
 				assertTrue(c.getNumUsers() == 4);
 				for(User u: c.getUsers()) {
-					if(u.getUsername().equals("u1") && u.getUser_id() == u1.getUser_id()) {
+					if(u.getUsername().equals("u1") && u.getUser_id().equals(u1.getUser_id())) {
 						u1Found = true;
-					} else if(u.getUsername().equals("u2") && u.getUser_id() == u2.getUser_id()) {
+					} else if(u.getUsername().equals("u2") && u.getUser_id().equals(u2.getUser_id())) {
 						u2Found = true;
-					} else if(u.getUsername().equals("u3") && u.getUser_id() == u3.getUser_id()) {
+					} else if(u.getUsername().equals("u3") && u.getUser_id().equals(u3.getUser_id())) {
 						u3Found = true;
-					} else if(u.getUsername().equals("u4") && u.getUser_id() == u4.getUser_id()){
+					} else if(u.getUsername().equals("u4") && u.getUser_id().equals(u4.getUser_id())) {
 						u4Found = true;
 					}else {
 						fail("Unexpected User Found");
 					}
 				}
 				assertTrue(u1Found == true && u2Found == true && u3Found == true && u4Found == true);
-			} else if(c.getConversation_id() == c2.getConversation_id()) {
+			} else if(c.getConversation_id().equals(c2.getConversation_id())) {
 				assertTrue(c.getNumUsers() == 2);
 				for(User u: c.getUsers()) {
-					if(u.getUsername().equals("u1") && u.getUser_id() == u1.getUser_id()) {
+					if(u.getUsername().equals("u1") && u.getUser_id().equals(u1.getUser_id())) {
 						u1Found = true;
-					} else if(u.getUsername().equals("u2") && u.getUser_id() == u2.getUser_id()) {
+					} else if(u.getUsername().equals("u2") && u.getUser_id().equals(u2.getUser_id())) {
 						u2Found = true;
 					}else {
 						fail("Unexpected User Found");
 					}
 				}
 				assertTrue(u1Found == true && u2Found == true);
-			} else if(c.getConversation_id() == c3.getConversation_id()){
+			} else if(c.getConversation_id().equals(c3.getConversation_id())) {
 				assertTrue(c.getNumUsers() == 2);
 				for(User u: c.getUsers()) {
-					if(u.getUsername().equals("u3") && u.getUser_id() == u3.getUser_id()) {
+					if(u.getUsername().equals("u3") && u.getUser_id().equals(u3.getUser_id())) {
 						u3Found = true;
-					} else if(u.getUsername().equals("u4") && u.getUser_id() == u4.getUser_id()) {
+					} else if(u.getUsername().equals("u4") && u.getUser_id().equals(u4.getUser_id())) {
 						u4Found = true;
 					}else {
 						fail("Unexpected User Found");
@@ -226,28 +227,28 @@ public class ConversationControllerTests {
 				boolean u3Found = false;
 				boolean u4Found = false;
 				
-				if(c.getConversation_id() == c1.getConversation_id()) {
+				if(c.getConversation_id().equals(c1.getConversation_id())) {
 					assertTrue(c.getNumUsers() == 4);
 					for(User u: c.getUsers()) {
-						if(u.getUsername().equals("u1") && u.getUser_id() == u1.getUser_id()) {
+						if(u.getUsername().equals("u1") && u.getUser_id().equals(u1.getUser_id())) {
 							u1Found = true;
-						} else if(u.getUsername().equals("u2") && u.getUser_id() == u2.getUser_id()) {
+						} else if(u.getUsername().equals("u2") && u.getUser_id().equals(u2.getUser_id())) {
 							u2Found = true;
-						} else if(u.getUsername().equals("u3") && u.getUser_id() == u3.getUser_id()) {
+						} else if(u.getUsername().equals("u3") && u.getUser_id().equals(u3.getUser_id())) {
 							u3Found = true;
-						} else if(u.getUsername().equals("u4") && u.getUser_id() == u4.getUser_id()){
+						} else if(u.getUsername().equals("u4") && u.getUser_id().equals(u4.getUser_id())) {
 							u4Found = true;
 						}else {
 							fail("Unexpected User Found");
 						}
 					}
 					assertTrue(u1Found == true && u2Found == true && u3Found == true && u4Found == true);
-				} else if(c.getConversation_id() == c2.getConversation_id()) {
+				} else if(c.getConversation_id().equals(c2.getConversation_id())) {
 					assertTrue(c.getNumUsers() == 2);
 					for(User u: c.getUsers()) {
-						if(u.getUsername().equals("u1") && u.getUser_id() == u1.getUser_id()) {
+						if(u.getUsername().equals("u1") && u.getUser_id().equals(u1.getUser_id())) {
 							u1Found = true;
-						} else if(u.getUsername().equals("u2") && u.getUser_id() == u2.getUser_id()) {
+						} else if(u.getUsername().equals("u2") && u.getUser_id().equals(u2.getUser_id())) {
 							u2Found = true;
 						}else {
 							fail("Unexpected User Found");
@@ -276,19 +277,19 @@ public class ConversationControllerTests {
 			EntityModel<ConversationResponseDTO> entityModel = objectMapper.readValue(rootNode.toString(), new TypeReference<EntityModel<ConversationResponseDTO>>() {});
 			ConversationResponseDTO conversation = entityModel.getContent();
 			
-			assertTrue(conversation.getConversation_id() == c1.getConversation_id());
+			assertTrue(conversation.getConversation_id().equals(c1.getConversation_id()));
 			boolean user1 = false;
 			boolean user2 = false;
 			boolean user3 = false;
 			boolean user4 = false;
 			for(User u: conversation.getUsers()) {
-				if(u.getUser_id() == u1.getUser_id() && u.getUsername().equals("u1")) {
+				if(u.getUser_id().equals(u1.getUser_id()) && u.getUsername().equals("u1")) {
 					user1 = true;
-				} else if(u.getUser_id() == u2.getUser_id() && u.getUsername().equals("u2")) {
+				} else if(u.getUser_id().equals(u2.getUser_id()) && u.getUsername().equals("u2")) {
 					user2 = true;
-				}else if(u.getUser_id() == u3.getUser_id() && u.getUsername().equals("u3")) {
+				}else if(u.getUser_id().equals(u3.getUser_id()) && u.getUsername().equals("u3")) {
 					user3 = true;
-				}else if(u.getUser_id() == u4.getUser_id() && u.getUsername().equals("u4")) {
+				}else if(u.getUser_id().equals(u4.getUser_id()) && u.getUsername().equals("u4")) {
 					user4 = true;
 				} else {
 					fail("Unexpecte User");
@@ -326,28 +327,28 @@ public class ConversationControllerTests {
 				boolean u3Found = false;
 				boolean u4Found = false;
 				
-				if(c.getConversation_id() == c1.getConversation_id()) {
+				if(c.getConversation_id().equals(c1.getConversation_id())) {
 					assertTrue(c.getNumUsers() == 4);
 					for(User u: c.getUsers()) {
-						if(u.getUsername().equals("u1") && u.getUser_id() == u1.getUser_id()) {
+						if(u.getUsername().equals("u1") && u.getUser_id().equals(u1.getUser_id())){
 							u1Found = true;
-						} else if(u.getUsername().equals("u2") && u.getUser_id() == u2.getUser_id()) {
+						} else if(u.getUsername().equals("u2") && u.getUser_id().equals(u2.getUser_id())) {
 							u2Found = true;
-						} else if(u.getUsername().equals("u3") && u.getUser_id() == u3.getUser_id()) {
+						} else if(u.getUsername().equals("u3") && u.getUser_id().equals(u3.getUser_id())) {
 							u3Found = true;
-						} else if(u.getUsername().equals("u4") && u.getUser_id() == u4.getUser_id()){
+						} else if(u.getUsername().equals("u4") && u.getUser_id().equals(u4.getUser_id())){
 							u4Found = true;
 						}else {
 							fail("Unexpected User Found");
 						}
 					}
 					assertTrue(u1Found == true && u2Found == true && u3Found == true && u4Found == true);
-				} else if(c.getConversation_id() == c2.getConversation_id()) {
+				} else if(c.getConversation_id().equals(c2.getConversation_id())) {
 					assertTrue(c.getNumUsers() == 2);
 					for(User u: c.getUsers()) {
-						if(u.getUsername().equals("u1") && u.getUser_id() == u1.getUser_id()) {
+						if(u.getUsername().equals("u1") && u.getUser_id().equals(u1.getUser_id())) {
 							u1Found = true;
-						} else if(u.getUsername().equals("u2") && u.getUser_id() == u2.getUser_id()) {
+						} else if(u.getUsername().equals("u2") && u.getUser_id().equals(u2.getUser_id())) {
 							u2Found = true;
 						}else {
 							fail("Unexpected User Found");
@@ -384,28 +385,28 @@ public class ConversationControllerTests {
 				boolean u3Found = false;
 				boolean u4Found = false;
 				
-				if(c.getConversation_id() == c1.getConversation_id()) {
+				if(c.getConversation_id().equals(c1.getConversation_id())){
 					assertTrue(c.getNumUsers() == 4);
 					for(User u: c.getUsers()) {
-						if(u.getUsername().equals("u1") && u.getUser_id() == u1.getUser_id()) {
+						if(u.getUsername().equals("u1") && u.getUser_id().equals(u1.getUser_id())) {
 							u1Found = true;
-						} else if(u.getUsername().equals("u2") && u.getUser_id() == u2.getUser_id()) {
+						} else if(u.getUsername().equals("u2") && u.getUser_id().equals(u2.getUser_id())) {
 							u2Found = true;
-						} else if(u.getUsername().equals("u3") && u.getUser_id() == u3.getUser_id()) {
+						} else if(u.getUsername().equals("u3") && u.getUser_id().equals(u3.getUser_id())) {
 							u3Found = true;
-						} else if(u.getUsername().equals("u4") && u.getUser_id() == u4.getUser_id()){
+						} else if(u.getUsername().equals("u4") && u.getUser_id().equals(u4.getUser_id())){
 							u4Found = true;
 						}else {
 							fail("Unexpected User Found");
 						}
 					}
 					assertTrue(u1Found == true && u2Found == true && u3Found == true && u4Found == true);
-				} else if(c.getConversation_id() == c3.getConversation_id()) {
+				} else if(c.getConversation_id().equals(c3.getConversation_id())) {
 					assertTrue(c.getNumUsers() == 2);
 					for(User u: c.getUsers()) {
-						if(u.getUsername().equals("u3") && u.getUser_id() == u3.getUser_id()) {
+						if(u.getUsername().equals("u3") && u.getUser_id().equals(u3.getUser_id())) {
 							u3Found = true;
-						} else if(u.getUsername().equals("u4") && u.getUser_id() == u4.getUser_id()) {
+						} else if(u.getUsername().equals("u4") && u.getUser_id().equals(u4.getUser_id())) {
 							u4Found = true;
 						}else {
 							fail("Unexpected User Found");
@@ -430,9 +431,9 @@ public class ConversationControllerTests {
 			boolean user1Found = false;
 			boolean user3Found = false;
 			for(User u: conversation.getUsers()) {
-				if(u.getUser_id() == u1.getUser_id() && u.getUsername().equals("u1")) {
+				if(u.getUser_id().equals(u1.getUser_id()) && u.getUsername().equals("u1")) {
 					user1Found = true;
-				} else if(u.getUser_id() == u3.getUser_id() && u.getUsername().equals("u3")) {
+				} else if(u.getUser_id().equals(u3.getUser_id()) && u.getUsername().equals("u3")) {
 					user3Found = true;
 				} else {
 					fail("Unexpected user found");
@@ -482,7 +483,8 @@ public class ConversationControllerTests {
 			assertTrue(conversation.getNumUsers() == 3);
 			boolean userAdded = false;
 			for(User u: conversation.getUsers()) {
-				if(u.getUser_id() == u1.getUser_id() && u.getUsername().equals("u1")) {
+				System.out.println("User In Conversation : " + u.toString());
+				if(u.getUser_id().equals(u1.getUser_id()) && u.getUsername().trim().equals(u1.getUsername())) {
 					userAdded = true;
 				}
 			}
@@ -500,7 +502,7 @@ public class ConversationControllerTests {
 			boolean leftConversation = true;
 			
 			for(User u: c1.getConversation_users()) {
-				if(u.getUser_id() == u3.getUser_id() || u.getUsername().equals("u3")) {
+				if(u.getUser_id().equals(u3.getUser_id()) || u.getUsername().equals("u3")) {
 					leftConversation = false;
 				}
 			}

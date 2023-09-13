@@ -66,6 +66,7 @@ public class MessageControllerEndpointAccessTests {
 	private MessageDTO messageDTO;
 	
 	@BeforeEach
+	@Transactional
 	void setup() throws Exception{
 		testHelper = new AuthenticationTestHelper(mockMvc, userRepository);
 		Properties properties = new Properties();
