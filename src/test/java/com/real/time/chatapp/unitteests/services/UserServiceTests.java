@@ -239,6 +239,7 @@ public class UserServiceTests {
     
 	@Test
 	@WithMockUser(username = "TestUser2")
+	@Transactional
 	void test_updateUser_isUnauthorized() {
 		// Mock
         User existingUser = User.builder()
@@ -285,6 +286,7 @@ public class UserServiceTests {
 	}
 	
 	@Test
+	@Transactional
 	void test_updateUser_returnsUserNotFoundException() {
         UserDTO userDTO = UserDTO.builder()
                 .username("NewTestUser1")
@@ -309,6 +311,7 @@ public class UserServiceTests {
 
 	@Test
 	@WithMockUser("TestUser1")
+	@Transactional
 	void test_deleteUser_asUser_isSuccesful() {
 		// Mock
         User existingUser = User.builder()
@@ -332,6 +335,7 @@ public class UserServiceTests {
 	
 	@Test
 	@WithMockUser("AdminUser")
+	@Transactional
 	void test_deleteUser_asAdmin_isSuccesful() {
 		//Mock
 		User adminUser = User.builder()
@@ -363,6 +367,7 @@ public class UserServiceTests {
 	}
 	
 	@Test
+	@Transactional
 	void test_deleteUser_returnsUserNotFoundException() {
 		//Mock
 		when(userRepository.findById(1L)).thenReturn(Optional.empty());
@@ -380,6 +385,7 @@ public class UserServiceTests {
 
 	@Test
 	@WithMockUser(username = "TestUser2")
+	@Transactional
 	void test_deleteUser_isUnauthorized() {
 		// Mock
         User existingUser = User.builder()

@@ -57,6 +57,7 @@ public class CoversationControllerEndpointAccessTests {
 	
 
 	@BeforeEach
+	@Transactional
 	void setup() {
 		testHelper = new AuthenticationTestHelper(mockMvc, userRepository);
 		Properties properties = new Properties();
@@ -74,11 +75,13 @@ public class CoversationControllerEndpointAccessTests {
 	//************************************************
 	
 	@Test
+	@Transactional
 	void test_conversation_returnsForbidden() throws Exception {
 		mockMvc.perform(get("/conversations")).andExpect(status().isForbidden());
 	}
 	
 	@Test
+	@Transactional
 	void test_conversation_returnsUnauthorized() throws Exception {
 		testHelper.signUp("test1", "password");
 		AuthenticationResponse authResponse = testHelper.loginAndReturnToken("test1", "password");

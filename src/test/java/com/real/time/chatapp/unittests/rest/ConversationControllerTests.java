@@ -78,6 +78,7 @@ public class ConversationControllerTests {
 	Link conversationAllLink;
 
 	@BeforeEach
+	@Transactional
 	void setUp() {
 		// Prepare mock data
 		conversation1 = new Conversation();

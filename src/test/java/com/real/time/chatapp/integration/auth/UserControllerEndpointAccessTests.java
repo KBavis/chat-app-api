@@ -44,6 +44,7 @@ public class UserControllerEndpointAccessTests {
 	private String adminPassword;
 	
 	@BeforeEach
+	@Transactional
 	void setup() throws Exception{
 		testHelper = new AuthenticationTestHelper(mockMvc, userRepository);
 		Properties properties = new Properties();
