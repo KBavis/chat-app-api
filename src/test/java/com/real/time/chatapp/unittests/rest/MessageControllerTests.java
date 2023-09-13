@@ -32,13 +32,15 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.real.time.chatapp.Assemblers.MessageModelAssembler;
 import com.real.time.chatapp.ControllerServices.MessageService;
-import com.real.time.chatapp.Controllers.ConversationController;
 import com.real.time.chatapp.Controllers.MessageController;
 import com.real.time.chatapp.DTO.MessageDTO;
+import com.real.time.chatapp.DTO.MessageResponseDTO;
 import com.real.time.chatapp.Entities.Message;
 import com.real.time.chatapp.Entities.User;
 import com.real.time.chatapp.Exception.UnauthorizedException;
 import com.real.time.chatapp.Repositories.MessageRepository;
+
+import jakarta.transaction.Transactional;
 
 /**
  * Unit Tests for Message Controlelr 
@@ -65,13 +67,14 @@ public class MessageControllerTests {
 	List<Message> mockMessages;
 	Message message1;
 	Message message2;
-	EntityModel<Message> mockEntityModel1;
-	EntityModel<Message> mockEntityModel2;
+	EntityModel<MessageResponseDTO> mockEntityModel1;
+	EntityModel<MessageResponseDTO> mockEntityModel2;
 	Link message1Link;
 	Link message2Link;
 	Link messageAllLink;
 	
 	@BeforeEach
+	@Transactional
 	void setUp() {
 		// Prepare mock data
 		message1 = new Message();
@@ -100,7 +103,7 @@ public class MessageControllerTests {
 		when(messageService.getAllMessages()).thenReturn(mockMessages);
 		
 		//Act
-		CollectionModel<EntityModel<Message>> response = messageController.all();
+		CollectionModel<EntityModel<MessageResponseDTO>> response = messageController.all();
 		
 		//assert
 		validateModel(response);
@@ -132,7 +135,7 @@ public class MessageControllerTests {
 		when(messageService.getAllUserMessages()).thenReturn(mockMessages);
 		
 		//Act
-		CollectionModel<EntityModel<Message>> response = messageController.getUserMessages();
+		CollectionModel<EntityModel<MessageResponseDTO>> response = messageController.getUserMessages();
 		
 		//assert
 		validateModel(response);
@@ -148,13 +151,13 @@ public class MessageControllerTests {
 		when(messageService.getMessageById(1L)).thenReturn(message1);
 		
 		//Act
-		EntityModel<Message> entityModel = messageController.one(1L);
+		EntityModel<MessageResponseDTO> entityModel = messageController.one(1L);
 		
 		//Assert
 		assertNotNull(entityModel);
 		assertTrue(entityModel.getLinks().hasLink(message1Link.getRel()));
 		assertTrue(entityModel.getLinks().hasLink(messageAllLink.getRel()));
-		assertEquals(entityModel.getContent(), message1);
+		assertEquals(entityModel.getContent().getMessage_id(), message1.getMessage_id());
 		
 		//Ensure Stubbed Methods Are Called
 		verify(messageService, times(1)).getMessageById(1L);
@@ -183,7 +186,7 @@ public class MessageControllerTests {
 		when(messageService.getConversationMessages(1L)).thenReturn(mockMessages);
 		
 		//Act
-		CollectionModel<EntityModel<Message>> response = messageController.getConversationMessages(1L);
+		CollectionModel<EntityModel<MessageResponseDTO>> response = messageController.getConversationMessages(1L);
 		
 		//assert
 		validateModel(response);
@@ -215,7 +218,7 @@ public class MessageControllerTests {
 		when(messageService.searchMessagesByContent("Content")).thenReturn(mockMessages);
 		
 		//Act
-		CollectionModel<EntityModel<Message>> response = messageController.searchMessagesByContent("Content");
+		CollectionModel<EntityModel<MessageResponseDTO>> response = messageController.searchMessagesByContent("Content");
 		
 		//assert
 		validateModel(response);
@@ -232,7 +235,7 @@ public class MessageControllerTests {
 		when(messageService.searchMessagesByDate(date)).thenReturn(mockMessages);
 		
 		//Act
-		CollectionModel<EntityModel<Message>> response = messageController.searchMessagesByDateSent(date);
+		CollectionModel<EntityModel<MessageResponseDTO>> response = messageController.searchMessagesByDateSent(date);
 		
 		//assert
 		validateModel(response);
@@ -247,7 +250,7 @@ public class MessageControllerTests {
 		when(messageService.searchMessagesByRead()).thenReturn(mockMessages);
 		
 		//Act
-		CollectionModel<EntityModel<Message>> response = messageController.searchMessagesByIsRead();
+		CollectionModel<EntityModel<MessageResponseDTO>> response = messageController.searchMessagesByIsRead();
 		
 		//assert
 		validateModel(response);
@@ -258,6 +261,7 @@ public class MessageControllerTests {
 	}
 	
 	@Test
+	@Transactional
 	void test_sendMessage_isSuccesful() {
 		MessageDTO messageDTO = new MessageDTO();
 		when(messageService.createMessage(messageDTO, 1L)).thenReturn(message1);
@@ -272,6 +276,7 @@ public class MessageControllerTests {
 	}
 	
 	@Test
+	@Transactional
 	void test_sendMessage_returnsUnauthorized() {
 		MessageDTO messageDTO = new MessageDTO();
 		when(messageService.createMessage(messageDTO,1L)).thenThrow(new UnauthorizedException(new User()));
@@ -289,6 +294,7 @@ public class MessageControllerTests {
 	}
 	
 	@Test
+	@Transactional
 	void test_updateMessage_isSuccesfull() {
 		MessageDTO messageDTO = new MessageDTO();
 		when(messageService.updateMessage(messageDTO, 1L)).thenReturn(message1);
@@ -303,6 +309,7 @@ public class MessageControllerTests {
 	}
 	
 	@Test
+	@Transactional
 	void test_updateMessage_returnsUnauthorized() {
 		MessageDTO messageDTO = new MessageDTO();
 		when(messageService.updateMessage(messageDTO,1L)).thenThrow(new UnauthorizedException(new User()));
@@ -320,6 +327,7 @@ public class MessageControllerTests {
 	}
 	
 	@Test
+	@Transactional
 	void test_deleteMessage_isSuccesful() {
 		//Act
 		ResponseEntity<?> responseEntity = messageController.deleteMessage(1L);
@@ -329,6 +337,7 @@ public class MessageControllerTests {
 	}
 	
 	@Test
+	@Transactional
 	void test_deleteMessage_returnsUnauthrozied() {
 		//Mock
 		doThrow(new UnauthorizedException(new User())).when(messageService).deleteMessage(1L);
@@ -352,13 +361,13 @@ public class MessageControllerTests {
 	 * 
 	 * @param response
 	 */
-	void validateModel(CollectionModel<EntityModel<Message>> response) {
+	void validateModel(CollectionModel<EntityModel<MessageResponseDTO>> response) {
 		// Validate CollectionModel
 		assertNotNull(response);
 		assertTrue(response.getLinks().hasLink(messageAllLink.getRel()));
 
 		// Extract EntityModels from CollectionModel
-		List<EntityModel<Message>> entityModels = response.getContent().stream().collect(Collectors.toList());
+		List<EntityModel<MessageResponseDTO>> entityModels = response.getContent().stream().collect(Collectors.toList());
 
 		// Ensure Our Collectiton Model Has Our Two Mocked Entity Models
 		assertNotNull(entityModels);
@@ -371,8 +380,8 @@ public class MessageControllerTests {
 		assertTrue(entityModels.get(1).getLinks().hasLink(message2Link.getRel()));
 
 		// Ensure The EntityModels Content Is Equal To Corresponding Conversation
-		assertEquals(entityModels.get(0).getContent(), message1);
-		assertEquals(entityModels.get(1).getContent(), message2);
+		assertEquals(entityModels.get(0).getContent().getMessage_id(), message1.getMessage_id());
+		assertEquals(entityModels.get(1).getContent().getMessage_id(), message2.getMessage_id());
 	}
 	
 	/**
@@ -398,10 +407,19 @@ public class MessageControllerTests {
 	 * @param conversation
 	 * @return
 	 */
-	EntityModel<Message> mockEntityModel(Message message) {
-		return EntityModel.of(message,
-				linkTo(methodOn(MessageController.class).one(message.getMessage_id())).withSelfRel(),
-				linkTo(methodOn(MessageController.class).all()).withRel("/messages"));
+	EntityModel<MessageResponseDTO> mockEntityModel(Message message) {
+		MessageResponseDTO responseDTO = new MessageResponseDTO();
+		responseDTO.setContent(message.getContent());
+		responseDTO.setConversation(message.getConversation());
+		responseDTO.setMessage_id(message.getMessage_id());
+		responseDTO.setRead(message.isRead());
+		responseDTO.setSender(message.getSender());
+		responseDTO.setRecipients(message.getRecipients());
+		responseDTO.setSendDate(message.getSendDate());
+		return EntityModel.of(responseDTO,
+			linkTo(methodOn(MessageController.class).one(message.getMessage_id())).withSelfRel(),
+			linkTo(methodOn(MessageController.class).all()).withRel("/messages")
+		); 
 	}
 	
 }

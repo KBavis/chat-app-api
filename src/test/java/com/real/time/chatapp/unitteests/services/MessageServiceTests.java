@@ -36,6 +36,8 @@ import com.real.time.chatapp.Repositories.ConversationRepository;
 import com.real.time.chatapp.Repositories.MessageRepository;
 import com.real.time.chatapp.Repositories.UserRepository;
 
+import jakarta.transaction.Transactional;
+
 @SpringBootTest
 public class MessageServiceTests {
 	@Mock
@@ -352,6 +354,7 @@ public class MessageServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_createMessage_isConversationNotFoundException() {
 		//Mock
 		when(conversationRepository.findById(1L)).thenReturn(Optional.empty());
@@ -369,6 +372,7 @@ public class MessageServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_createMessage_isUnauthorized() {
 		// Mock
 		User testUser = User.builder().user_id(1L).firstName("Test").lastName("User").userName("TestUser")
@@ -390,6 +394,7 @@ public class MessageServiceTests {
 	
 	@Test
 	@WithMockUser("u1")
+	@Transactional
 	void test_createMesage_isSuccesful() {
 		// Mock Users
 		User u1 = User.builder()
@@ -447,6 +452,7 @@ public class MessageServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_updateMessage_isUnauthorized() {
 		// Mock
 		User u1 = User.builder()
@@ -478,6 +484,7 @@ public class MessageServiceTests {
 	}
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_updateMessage_isSuccesful() {
 		//Mock
 		Date date = new Date();
@@ -511,6 +518,7 @@ public class MessageServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_deleteMessage_isUnauthorized() {
 		//Mocking
 		User u1 = User.builder()
@@ -544,6 +552,7 @@ public class MessageServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_deleteMessage_isSuccesful_asUser() {
 		//Mocking
 		User testUser = User.builder().user_id(1L).firstName("Test").lastName("User").userName("TestUser")
@@ -565,6 +574,7 @@ public class MessageServiceTests {
 	
 	@Test
 	@WithMockUser("AdminUser")
+	@Transactional
 	void test_deleteMessage_isSuccesful_asAdmin() {
 		//Mocking
 		User testUser = User.builder().user_id(1L).firstName("Test").lastName("User").userName("TestUser")

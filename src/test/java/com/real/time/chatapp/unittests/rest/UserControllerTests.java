@@ -33,9 +33,12 @@ import com.real.time.chatapp.Assemblers.UserModelAssembler;
 import com.real.time.chatapp.ControllerServices.UserService;
 import com.real.time.chatapp.Controllers.UserController;
 import com.real.time.chatapp.DTO.UserDTO;
+import com.real.time.chatapp.DTO.UserResponseDTO;
 import com.real.time.chatapp.Entities.User;
 import com.real.time.chatapp.Exception.UnauthorizedException;
 import com.real.time.chatapp.Repositories.UserRepository;
+
+import jakarta.transaction.Transactional;
 
 /**
  * Unit Tests for User Controller 
@@ -62,13 +65,14 @@ public class UserControllerTests {
 	User user1;
 	User user2;
 	List<User> mockUsers;
-	EntityModel<User> mockEntityModel1; 
-	EntityModel<User> mockEntityModel2; 
+	EntityModel<UserResponseDTO> mockEntityModel1; 
+	EntityModel<UserResponseDTO> mockEntityModel2; 
 	Link user1Link;
 	Link user2Link;
 	Link userAllLink;
 	
 	@BeforeEach
+	@Transactional
 	void setUp() {
 		// Prepare mock data
 		user1 = new User();
@@ -92,12 +96,13 @@ public class UserControllerTests {
 	}
 	
 	@Test
+	@Transactional
 	void test_getAllUsers_isSuccesfull() {
 		//Mock
 		when(userService.getAllUsers()).thenReturn(mockUsers);
 		
 		//Act
-		CollectionModel<EntityModel<User>> response = userController.all();
+		CollectionModel<EntityModel<UserResponseDTO>> response = userController.all();
 		
 		//Assert
 		validateModel(response);
@@ -108,18 +113,19 @@ public class UserControllerTests {
 	}
 	
 	@Test
+	@Transactional
 	void test_getUserById_isSuccesful() {
 		//Mock
 		when(userService.getUserById(1L)).thenReturn(user1);
 		
 		//Act
-		EntityModel<User> entityModel = userController.one(1L);
+		EntityModel<UserResponseDTO> entityModel = userController.one(1L);
 		
 		//Assert
 		assertNotNull(entityModel);
 		assertTrue(entityModel.getLinks().hasLink(user1Link.getRel()));
 		assertTrue(entityModel.getLinks().hasLink(userAllLink.getRel()));
-		assertEquals(entityModel.getContent(), user1);
+		assertEquals(entityModel.getContent().getUser_id(), user1.getUser_id());
 		
 		//Ensure Stubbed Methods Are Called
 		verify(userService, times(1)).getUserById(1L);
@@ -127,12 +133,13 @@ public class UserControllerTests {
 	}
 	
 	@Test
+	@Transactional
 	void void_testSearchUsersByName_isSuccesful() {
 		//Mock
 		when(userService.searchUserByName(any(String.class))).thenReturn(mockUsers);
 		
 		//Act
-		CollectionModel<EntityModel<User>> response = userController.searchUsersByName("Name");
+		CollectionModel<EntityModel<UserResponseDTO>> response = userController.searchUsersByName("Name");
 		
 		//Assert
 		validateModel(response);
@@ -143,12 +150,13 @@ public class UserControllerTests {
 	}
 	
 	@Test
+	@Transactional
 	void test_searchUsersByUserName_isSuccesful() {
 		//Mock
 		when(userService.searchUserByUsername(any())).thenReturn(mockUsers);
 		
 		//Act
-		CollectionModel<EntityModel<User>> response = userController.searchUsersByUserName("Name");
+		CollectionModel<EntityModel<UserResponseDTO>> response = userController.searchUsersByUserName("Name");
 		
 		//Assert
 		validateModel(response);
@@ -159,6 +167,7 @@ public class UserControllerTests {
 	}
 	
 	@Test
+	@Transactional
 	void test_updateUser_isSuccesful() {
 		//Mock
 		UserDTO userDTO = new UserDTO();
@@ -176,6 +185,7 @@ public class UserControllerTests {
 	}
 	
 	@Test
+	@Transactional
 	void test_updateUser_returnsUnauthorized() {
 		//Mock
 		UserDTO userDTO = new UserDTO();
@@ -196,6 +206,7 @@ public class UserControllerTests {
 	}
 	
 	@Test
+	@Transactional
 	void test_deleteUser_isSuccesful() {
 		//Act
 		ResponseEntity<?> responseEntity = userController.deleteUser(1L);
@@ -208,6 +219,7 @@ public class UserControllerTests {
 	}
 	
 	@Test
+	@Transactional
 	void test_deleteUser_isUnauthorized() {
 		//Mock
 		 doThrow(new UnauthorizedException(new User())).when(userService).deleteUser(1L);
@@ -231,13 +243,13 @@ public class UserControllerTests {
 	 * 
 	 * @param response
 	 */
-	void validateModel(CollectionModel<EntityModel<User>> response) {
+	void validateModel(CollectionModel<EntityModel<UserResponseDTO>> response) {
 		// Validate CollectionModel
 		assertNotNull(response);
 		assertTrue(response.getLinks().hasLink(userAllLink.getRel()));
 
 		// Extract EntityModels from CollectionModel
-		List<EntityModel<User>> entityModels = response.getContent().stream().collect(Collectors.toList());
+		List<EntityModel<UserResponseDTO>> entityModels = response.getContent().stream().collect(Collectors.toList());
 
 		// Ensure Our Collectiton Model Has Our Two Mocked Entity Models
 		assertNotNull(entityModels);
@@ -250,8 +262,8 @@ public class UserControllerTests {
 		assertTrue(entityModels.get(1).getLinks().hasLink(user2Link.getRel()));
 
 		// Ensure The EntityModels Content Is Equal To Corresponding Conversation
-		assertEquals(entityModels.get(0).getContent(), user1);
-		assertEquals(entityModels.get(1).getContent(), user2);
+		assertEquals(entityModels.get(0).getContent().getUser_id(), user1.getUser_id());
+		assertEquals(entityModels.get(1).getContent().getUser_id(), user2.getUser_id());
 	}
 	
 	
@@ -277,9 +289,19 @@ public class UserControllerTests {
 	 * @param conversation
 	 * @return
 	 */
-	EntityModel<User> mockEntityModel(User user) {
-		return EntityModel.of(user,
-				linkTo(methodOn(UserController.class).one(user.getUser_id())).withSelfRel(),
-				linkTo(methodOn(UserController.class).all()).withRel("/users"));
+	EntityModel<UserResponseDTO> mockEntityModel(User user) {
+		UserResponseDTO responseDTO = new UserResponseDTO();
+		responseDTO.setUser_id(user.getUser_id());
+		responseDTO.setUserName(user.getUsername());
+		responseDTO.setFirstName(user.getFirstName());
+		responseDTO.setLastName(user.getLastName());
+		responseDTO.setPassword(user.getPassword());
+		responseDTO.setRole(user.getRole());
+		responseDTO.setList_conversations(user.getList_conversations());
+		responseDTO.setSentMessges(user.getSentMessages());
+		responseDTO.setRecievedMessages(user.getRecievedMessages());
+		return EntityModel.of(responseDTO,
+			linkTo(methodOn(UserController.class).one(user.getUser_id())).withSelfRel(),
+			linkTo(methodOn(UserController.class).all()).withRel("/users"));
 	}
 }

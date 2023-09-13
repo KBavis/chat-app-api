@@ -4,7 +4,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.hateoas.CollectionModel;
@@ -22,15 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.real.time.chatapp.Assemblers.UserModelAssembler;
-import com.real.time.chatapp.ControllerServices.AuthenticationService;
 import com.real.time.chatapp.ControllerServices.UserService;
 import com.real.time.chatapp.DTO.UserDTO;
-import com.real.time.chatapp.Entities.Message;
+import com.real.time.chatapp.DTO.UserResponseDTO;
 import com.real.time.chatapp.Entities.User;
 import com.real.time.chatapp.Exception.UnauthorizedException;
-import com.real.time.chatapp.Exception.UserNotFoundException;
-import com.real.time.chatapp.Repositories.MessageRepository;
-import com.real.time.chatapp.Repositories.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -47,8 +42,8 @@ public class UserController {
 	 * @return
 	 */
 	@GetMapping("/users")
-	public CollectionModel<EntityModel<User>> all() {
-		List<EntityModel<User>> users = userService.getAllUsers().stream().map(userAssembler::toModel)
+	public CollectionModel<EntityModel<UserResponseDTO>> all() {
+		List<EntityModel<UserResponseDTO>> users = userService.getAllUsers().stream().map(userAssembler::toModel)
 				.collect(Collectors.toList());
 
 		return CollectionModel.of(users, linkTo(methodOn(UserController.class).all()).withSelfRel());
@@ -61,7 +56,7 @@ public class UserController {
 	 * @return
 	 */
 	@GetMapping("/users/{id}")
-	public EntityModel<User> one(@PathVariable Long id) {
+	public EntityModel<UserResponseDTO> one(@PathVariable Long id) {
 
 		User user = userService.getUserById(id);
 		return userAssembler.toModel(user);
@@ -74,8 +69,8 @@ public class UserController {
 	 * @return
 	 */
 	@GetMapping("/search/users/name")
-	public CollectionModel<EntityModel<User>> searchUsersByName(@RequestParam String name) {
-		List<EntityModel<User>> entityModels = userService.searchUserByName(name)
+	public CollectionModel<EntityModel<UserResponseDTO>> searchUsersByName(@RequestParam String name) {
+		List<EntityModel<UserResponseDTO>> entityModels = userService.searchUserByName(name)
 				.stream().map(userAssembler::toModel).collect(Collectors.toList());
 
 		return CollectionModel.of(entityModels,
@@ -89,8 +84,8 @@ public class UserController {
 	 * @return
 	 */
 	@GetMapping("/search/users/userName")
-	public CollectionModel<EntityModel<User>> searchUsersByUserName(@RequestParam String userName) {
-		List<EntityModel<User>> entityModels = userService.searchUserByUsername(userName).stream()
+	public CollectionModel<EntityModel<UserResponseDTO>> searchUsersByUserName(@RequestParam String userName) {
+		List<EntityModel<UserResponseDTO>> entityModels = userService.searchUserByUsername(userName).stream()
 				.map(userAssembler::toModel).collect(Collectors.toList());
 
 		return CollectionModel.of(entityModels,
@@ -106,7 +101,7 @@ public class UserController {
 	 */
 	@PutMapping("users/{id}")
 	public ResponseEntity<?> updateUser(@RequestBody UserDTO newUser, @PathVariable Long id) {
-		EntityModel<User> entityModel;
+		EntityModel<UserResponseDTO> entityModel;
 		try {
 			User updatedUser = userService.updateUser(id, newUser);
 			entityModel = userAssembler.toModel(updatedUser);

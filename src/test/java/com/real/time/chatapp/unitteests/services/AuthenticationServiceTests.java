@@ -31,6 +31,8 @@ import com.real.time.chatapp.Exception.UserNotFoundException;
 import com.real.time.chatapp.Exception.UsernameTakenException;
 import com.real.time.chatapp.Repositories.UserRepository;
 
+import jakarta.transaction.Transactional;
+
 /**
  * Authentication Service Unit Tests
  * 
@@ -56,6 +58,7 @@ public class AuthenticationServiceTests {
 	private AuthenticationService authService;
 
 	@Test
+	@Transactional
 	void test_register_isSuccesful() {
 		RegisterRequest registerRequest = RegisterRequest.builder().username("test").password("test").build();
 
@@ -80,6 +83,7 @@ public class AuthenticationServiceTests {
 	}
 
 	@Test
+	@Transactional
 	void test_register_usernameTaken() {
 		RegisterRequest registerRequest = RegisterRequest.builder().username("test").password("test").build();
 		// Mock
@@ -99,6 +103,7 @@ public class AuthenticationServiceTests {
 	}
 
 	@Test
+	@Transactional
 	void test_register_badRequest() {
 		RegisterRequest registerRequest = new RegisterRequest();
 
@@ -113,6 +118,7 @@ public class AuthenticationServiceTests {
 	}
 
 	@Test
+	@Transactional
 	void test_authenticate_isSuccesful() {
 		AuthenticationRequest request = new AuthenticationRequest("username", "password");
 		Authentication authentication = new UsernamePasswordAuthenticationToken(request.getUsername(),
@@ -138,6 +144,7 @@ public class AuthenticationServiceTests {
 	}
 
 	@Test
+	@Transactional
 	void test_authenticate_badCredentials() {
 		AuthenticationRequest request = new AuthenticationRequest("username", "invalid_password");
 
@@ -159,6 +166,7 @@ public class AuthenticationServiceTests {
 	}
 
 	@Test
+	@Transactional
 	void test_authenticate_userNotFoundExcetpion() {
 		AuthenticationRequest request = new AuthenticationRequest("username", "password");
 

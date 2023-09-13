@@ -59,6 +59,7 @@ public class UserMessageConversationRelationTests {
 	private IntegrationTestHelper testHelper;
 
 	@BeforeEach
+	@Transactional
 	void setUp() throws Exception {
 		testHelper = new IntegrationTestHelper(mockMvc, userRepository);
 		testHelper.signUp("test1", "password");

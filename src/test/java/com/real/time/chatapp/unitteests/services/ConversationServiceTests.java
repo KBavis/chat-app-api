@@ -35,6 +35,8 @@ import com.real.time.chatapp.Exception.UserNotFoundException;
 import com.real.time.chatapp.Repositories.ConversationRepository;
 import com.real.time.chatapp.Repositories.UserRepository;
 
+import jakarta.transaction.Transactional;
+
 @SpringBootTest
 public class ConversationServiceTests {
 	
@@ -76,6 +78,7 @@ public class ConversationServiceTests {
 	}
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_getAllConversations_asUser_isUnauthorized() {
 		//Mock
 		User testUser = User.builder()
@@ -104,6 +107,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("AdminUser")
+	@Transactional
 	void test_getAllConversations_asAdmin_isSuccesful() {
 		//Mock
 		User adminUser = User.builder()
@@ -135,6 +139,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_getAllUserConversations_isSuccesful() {
 		//Mock
 		User testUser = User.builder()
@@ -165,6 +170,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_getConversationByID_isSuccesful() {
 		//Mock
 		User testUser = User.builder()
@@ -197,6 +203,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_getConversationByID_isUnauthorized() {
 		//Mock
 		User testUser = User.builder()
@@ -226,6 +233,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_getConversationByID_isNotFound() {
 		//Mock
 		User testUser = User.builder()
@@ -256,6 +264,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_searchConversationByDate_isSuccesful() {
 		//Mock
 		User testUser = User.builder()
@@ -287,6 +296,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("AuthUser")
+	@Transactional
 	void test_searchConversationWithUser_isSuccesful() {
 		//Mock
 		User testUser = User.builder()
@@ -327,6 +337,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("AuthUser")
+	@Transactional
 	void test_createConversation_isSuccesful() {
 		//Mock
 		User testUser = User.builder()
@@ -369,6 +380,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("AuthUser")
+	@Transactional
 	void test_createConversation_isNotFound() {
 		//Mock
 		User loggedInUser = User.builder()
@@ -400,6 +412,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("AuthUser")
+	@Transactional
 	void test_updateConversation_isNotFound() {
 		//Mock
 		User loggedInUser = User.builder()
@@ -429,6 +442,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_updateConversation_isUnauthorized() {
 		//Mock
 		User testUser = User.builder()
@@ -459,6 +473,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_updateConversation_isSuccesful() {
 		//Mock
 		List<Message> messages = new ArrayList<>();
@@ -504,6 +519,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_addUserToConversation_isConversationNotFound() {
 		//Mock
 		when(conversationRepository.findById(1L)).thenReturn(Optional.empty());
@@ -523,6 +539,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_addUserToConversation_isUserNotFound() {
 		//Mock
 		User testUser = User.builder()
@@ -560,6 +577,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_addUserToConversation_isUnauthorized() {
 		//Mock
 		User testUser = User.builder()
@@ -588,6 +606,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("LoggedInUser")
+	@Transactional
 	void test_addUserToConversation_isSuccesful() {
 		//Mock
 		User testUser = User.builder()
@@ -638,6 +657,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_leaveConversation_isConversationNotFound() {
 		//Mock
 		when(conversationRepository.findById(1L)).thenReturn(Optional.empty());
@@ -657,6 +677,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_leaveConversation_isUnauthorized() {
 		//Mock
 		User testUser = User.builder()
@@ -686,6 +707,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_leaveConversation_isSuccesful_notDeleted() {
 		//Mock
 		User testUser = User.builder()
@@ -719,6 +741,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_leaveConversation_isSuccesful_isDeleted() {
 		//Mock
 		User testUser = User.builder()
@@ -751,6 +774,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("TestUser")
+	@Transactional
 	void test_deleteConversation_isUnauthorized() {
 		//Mock
 		User testUser = User.builder()
@@ -777,6 +801,7 @@ public class ConversationServiceTests {
 	
 	@Test
 	@WithMockUser("AdminUser")
+	@Transactional
 	void test_deleteConversation_isSuccesful() {
 		//Mock
 		User adminUser = User.builder()
