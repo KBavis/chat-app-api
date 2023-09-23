@@ -3,7 +3,7 @@ package com.real.time.chatapp.integration.rest;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
-import java.io.UnsupportedEncodingException;
+import java.util.Date;
 
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -13,7 +13,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.real.time.chatapp.Auth.AuthenticationRequest;
 import com.real.time.chatapp.Auth.AuthenticationResponse;
 import com.real.time.chatapp.Auth.RegisterRequest;
+import com.real.time.chatapp.DTO.MessageDTO;
 import com.real.time.chatapp.Entities.Conversation;
+import com.real.time.chatapp.Entities.Message;
 import com.real.time.chatapp.Repositories.UserRepository;
 import com.real.time.chatapp.Util.JsonUtil;
 
@@ -68,5 +70,16 @@ public class RestIntegrationTestHelper {
 		
 		return JsonUtil.fromJson(addUserToConvoReturnValueJson, Conversation.class);
 	}
+	
+	protected Message sendMessage(Long conversationId, AuthenticationResponse authResponse, String content) throws Exception{
+		String sendMessageReturnValueJson = mockMvc.perform(post("/messages/" + conversationId)
+				.header("Authorization", "Bearer " + authResponse.getToken())
+				.content(new ObjectMapper().writeValueAsString(
+						MessageDTO.builder().content(content).build()))
+				.contentType(MediaType.APPLICATION_JSON)).andReturn().getResponse().getContentAsString();
+		
+		return JsonUtil.fromJson(sendMessageReturnValueJson, Message.class);
+	}
+
 
 }
