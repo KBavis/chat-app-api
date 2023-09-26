@@ -79,11 +79,11 @@ public class UserService {
 			throw new UnauthorizedException(user);
 		}
 
-		user.setFirstName(userDTO.getFirstName());
-		user.setLastName(userDTO.getLastName());
-		user.setPassword(userDTO.getPassword());
-		user.setRole(userDTO.getRole());
-		user.setUserName(userDTO.getUsername());
+		if(userDTO.getFirstName() != null) user.setFirstName(userDTO.getFirstName());
+		if(userDTO.getLastName() != null) user.setLastName(userDTO.getLastName());
+		if(userDTO.getPassword() != null) user.setPassword(userDTO.getPassword());
+		if(userDTO.getRole() != null) user.setRole(userDTO.getRole());
+		if(userDTO.getUsername() != null) user.setUserName(userDTO.getUsername());
 		return userRepository.save(user);
 	}
 
