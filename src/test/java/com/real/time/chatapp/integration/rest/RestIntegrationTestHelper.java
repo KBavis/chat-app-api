@@ -3,8 +3,6 @@ package com.real.time.chatapp.integration.rest;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
-import java.util.Date;
-
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -14,8 +12,10 @@ import com.real.time.chatapp.Auth.AuthenticationRequest;
 import com.real.time.chatapp.Auth.AuthenticationResponse;
 import com.real.time.chatapp.Auth.RegisterRequest;
 import com.real.time.chatapp.DTO.MessageDTO;
+import com.real.time.chatapp.DTO.UserDTO;
 import com.real.time.chatapp.Entities.Conversation;
 import com.real.time.chatapp.Entities.Message;
+import com.real.time.chatapp.Entities.User;
 import com.real.time.chatapp.Repositories.UserRepository;
 import com.real.time.chatapp.Util.JsonUtil;
 
@@ -79,6 +79,16 @@ public class RestIntegrationTestHelper {
 				.contentType(MediaType.APPLICATION_JSON)).andReturn().getResponse().getContentAsString();
 		
 		return JsonUtil.fromJson(sendMessageReturnValueJson, Message.class);
+	}
+	
+	protected User updateUserFullName(Long userId, AuthenticationResponse authResponse, String firstName, String lastName) throws Exception {
+		String updateUserFullName = mockMvc.perform(put("/users/" + userId)
+				.header("Authorization", "Bearer " + authResponse.getToken())
+				.content(new ObjectMapper().writeValueAsString(
+						UserDTO.builder().firstName(firstName).lastName(lastName).build()))
+				.contentType(MediaType.APPLICATION_JSON)).andReturn().getResponse().getContentAsString();
+		
+		return JsonUtil.fromJson(updateUserFullName, User.class);
 	}
 
 
