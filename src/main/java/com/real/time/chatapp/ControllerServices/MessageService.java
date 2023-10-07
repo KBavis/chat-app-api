@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.real.time.chatapp.DTO.MessageDTO;
 import com.real.time.chatapp.Entities.Conversation;
@@ -22,6 +22,7 @@ import com.real.time.chatapp.Exception.ConversationNotFoundException;
 import com.real.time.chatapp.Exception.MessageNotFoundException;
 import com.real.time.chatapp.Exception.UnauthorizedException;
 import com.real.time.chatapp.Exception.UserNotFoundException;
+import com.real.time.chatapp.Kafka.JsonKafkaProducer;
 import com.real.time.chatapp.Repositories.ConversationRepository;
 import com.real.time.chatapp.Repositories.MessageRepository;
 import com.real.time.chatapp.Repositories.UserRepository;
@@ -31,10 +32,12 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class MessageService {
-
+	
+	private static Logger LOG = LoggerFactory.getLogger(MessageService.class);
 	private final MessageRepository messageRepository;
 	private final ConversationRepository conversationRepository;
 	private final UserRepository userRepository;
+	private final JsonKafkaProducer kafkaProducer;
 
 	/**
 	 * Get All Messages Sent on Application
@@ -158,7 +161,6 @@ public class MessageService {
 		message.setSender(sender);
 		message.setConversation(conversation);
 
-		System.out.println("Message Generated");
 
 		// Add Messages to List of Messages For The Current Conversation
 		List<Message> conversationMessages = conversation.getMessages();
@@ -181,7 +183,16 @@ public class MessageService {
 			recipient.setRecievedMessages(recievedMessages);
 		}
 
-		return messageRepository.save(message);
+		//Save Message
+		Message savedMessage = messageRepository.save(message);
+		
+		//Send Message Via Kafka 
+		messageDTO.setId(savedMessage.getMessage_id());
+		messageDTO.setRead(savedMessage.isRead());
+		messageDTO.setSendDate(savedMessage.getSendDate());
+		kafkaProducer.sendMessage(messageDTO, conversationID);
+		
+		return savedMessage;
 	}
 
 	/**
