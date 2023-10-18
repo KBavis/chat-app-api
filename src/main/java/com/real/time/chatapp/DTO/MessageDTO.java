@@ -20,6 +20,7 @@ import lombok.Setter;
 @Builder
 public class MessageDTO {
 	private Long id;
+	private Long conversationId;
 	private boolean isRead;
 	private Date sendDate;
 	private String content;

@@ -32,6 +32,7 @@ import com.real.time.chatapp.Entities.User;
 import com.real.time.chatapp.Exception.ConversationNotFoundException;
 import com.real.time.chatapp.Exception.MessageNotFoundException;
 import com.real.time.chatapp.Exception.UnauthorizedException;
+import com.real.time.chatapp.Kafka.JsonKafkaProducer;
 import com.real.time.chatapp.Repositories.ConversationRepository;
 import com.real.time.chatapp.Repositories.MessageRepository;
 import com.real.time.chatapp.Repositories.UserRepository;
@@ -48,6 +49,9 @@ public class MessageServiceTests {
 
 	@Mock
 	private UserRepository userRepository;
+	
+	@Mock
+	private JsonKafkaProducer kafkaProducer;
 
 	@InjectMocks
 	private MessageService messageService;
