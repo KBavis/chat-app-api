@@ -4,17 +4,24 @@ import java.util.Map;
 
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.NewTopic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
 public class KafkaConfig {
 	
-//	@Bean
-//	public NewTopic conversationTopic(String conversationId) {
-//		return TopicBuilder.name("conversation-" + conversationId)
-//				.build();
-//	}
+	private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConfig.class);
+	
+	@Bean
+	public NewTopic conversationTopic() {
+		LOGGER.info("New Kafka Topic Creatged: messages");
+		return TopicBuilder.name("messages")
+				.build();
+	}
 	
     @Bean
     public AdminClient adminClient() {

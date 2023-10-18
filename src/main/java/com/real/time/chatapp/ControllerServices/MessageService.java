@@ -190,7 +190,10 @@ public class MessageService {
 		messageDTO.setId(savedMessage.getMessage_id());
 		messageDTO.setRead(savedMessage.isRead());
 		messageDTO.setSendDate(savedMessage.getSendDate());
-		kafkaProducer.sendMessage(messageDTO, conversationID);
+		messageDTO.setConversationId(conversationID);
+		
+		LOG.info(String.format("MessagesDTO: %s" , messageDTO.toString()));
+		kafkaProducer.sendMessage(messageDTO);
 		
 		return savedMessage;
 	}

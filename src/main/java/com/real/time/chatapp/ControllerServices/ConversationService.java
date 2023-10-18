@@ -124,10 +124,10 @@ public class ConversationService {
 		Conversation savedConversation = conversationRepository.save(conversation);
 		
 		//Creating New Topic For Conversation
-		NewTopic newTopic = TopicBuilder.name("conversation-" + savedConversation.getConversation_id()).build();
-		adminClient.createTopics(Collections.singleton(newTopic));
-		
-		LOGGER.info("Conversation Topic Created: conversation-" + savedConversation.getConversation_id());
+//		NewTopic newTopic = TopicBuilder.name("conversation-" + savedConversation.getConversation_id()).build();
+//		adminClient.createTopics(Collections.singleton(newTopic));
+//		
+//		LOGGER.info("Conversation Topic Created: conversation-" + savedConversation.getConversation_id());
 		
 		return savedConversation;
 	}
