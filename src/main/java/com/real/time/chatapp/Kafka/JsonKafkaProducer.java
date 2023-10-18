@@ -19,11 +19,12 @@ public class JsonKafkaProducer {
 	private static Logger LOGGER = LoggerFactory.getLogger(JsonKafkaProducer.class);
 	private final KafkaTemplate<String, MessageDTO> kafkaTemplate;
 	
-	public void sendMessage(MessageDTO data, Long conversationId) {
-		LOGGER.info(String.format("Topic: conversation-"+ conversationId +", Message sent -> %s", data.toString()));
+	public void sendMessage(MessageDTO data) {
+		String topicName = "messages";
+		LOGGER.info(String.format("Topic: "+ topicName +", Message sent -> %s", data.toString()));
 		Message<MessageDTO> message = MessageBuilder
 				.withPayload(data)
-				.setHeader(KafkaHeaders.TOPIC, "conversation-" + conversationId)
+				.setHeader(KafkaHeaders.TOPIC, topicName)
 				.setHeader(KafkaHeaders.KEY, data.getId().toString())
 				.build();
 		
