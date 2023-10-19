@@ -29,7 +29,5 @@ public class JsonKafkaConsumer {
         MessageDTO message = record.value();
         messagingTemplate.convertAndSend("/topic/conversation/" + conversationId.toString(), message);
         
-        LOGGER.info("Message Has Been Successfully Sent To The WebSocket");
-
     }
 }
