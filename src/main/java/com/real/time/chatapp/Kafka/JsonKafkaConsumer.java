@@ -27,11 +27,7 @@ public class JsonKafkaConsumer {
         //Send Message to WebSocket Clients Associated With The Conversation 
         Long conversationId = record.value().getConversationId();
         MessageDTO message = record.value();
-        messagingTemplate.convertAndSendToUser(
-                conversationId.toString(),
-                "/topic/conversation/" + conversationId,
-                message
-        );
+        messagingTemplate.convertAndSend("/topic/conversation/" + conversationId.toString(), message);
         
         LOGGER.info("Message Has Been Successfully Sent To The WebSocket");
 
