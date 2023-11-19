@@ -23,6 +23,7 @@ public class UserModelAssembler implements RepresentationModelAssembler<User, En
 		responseDTO.setLastName(user.getLastName());
 		responseDTO.setPassword(user.getPassword());
 		responseDTO.setRole(user.getRole());
+		responseDTO.setProfileImage(user.getProfileImage());
 		responseDTO.setList_conversations(user.getList_conversations());
 		responseDTO.setSentMessges(user.getSentMessages());
 		responseDTO.setRecievedMessages(user.getRecievedMessages());

@@ -3,6 +3,7 @@ package com.real.time.chatapp.unittests.rest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -63,13 +64,17 @@ public class AuthenticationControllerTests {
             AuthenticationResponse.builder().token("dummyToken").build());
 
         // Act
-        ResponseEntity<AuthenticationResponse> responseEntity = authController.register(registerRequest);
+        ResponseEntity<?> responseEntity = authController.register(registerRequest);
 
         // Assert
+        
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
-        assertEquals("dummyToken", responseEntity.getBody().getToken());
+        assertTrue(responseEntity.getBody() instanceof AuthenticationResponse);
+        @SuppressWarnings("unchecked")
+		ResponseEntity<AuthenticationResponse> typeResponse = (ResponseEntity<AuthenticationResponse>) responseEntity;
+        assertEquals("dummyToken", typeResponse.getBody().getToken());
         
         //Ensure Stubbed Methods Are Called
         verify(authService, times(1)).register(registerRequest);
@@ -84,11 +89,9 @@ public class AuthenticationControllerTests {
         when(authService.register(registerRequest)).thenThrow(new UsernameTakenException("existingUsername"));
         
         //Act and Assert
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-            authController.register(registerRequest);
-        });
-        assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
-        assertEquals("The requested username is already taken.", exception.getReason());
+        ResponseEntity<?> responseEntity = authController.register(registerRequest);
+        assertEquals(HttpStatus.CONFLICT, responseEntity.getStatusCode());
+        assertEquals("Username existingUsername already exists.", responseEntity.getBody());
         
         //Ensure Stubbed Methods Are Called
         verify(authService, times(1)).register(registerRequest);
@@ -103,11 +106,9 @@ public class AuthenticationControllerTests {
         
         
         //Act and Assert
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-            authController.register(registerRequest);
-        });
-        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
-        assertEquals("The register request is invalid.", exception.getReason());
+        ResponseEntity<?> responseEntity = authController.register(registerRequest);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals("Bad Register Request: Please Enter A Valid Username And Password", responseEntity.getBody());
         
         //Ensure Stubbed Methods Are Called
         verify(authService, times(1)).register(registerRequest);

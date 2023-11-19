@@ -21,5 +21,14 @@ public class UserDTO {
 	private String lastName;
 	private String username;
 	private String password;
+	private String profileImage;
 	private Role role;
+	
+	
+	@Override
+	public String toString() {
+		return "UserDTO [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", username=" + username
+				+ ", password=" + password + ", profileImage=" + profileImage + ", role=" + role + "]";
+	}
+	
 }

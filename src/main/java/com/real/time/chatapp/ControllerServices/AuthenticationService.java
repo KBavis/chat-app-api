@@ -48,12 +48,15 @@ public class AuthenticationService {
 		Optional<User> optionalUser = userRepository.findByUserName(request.getUsername());
 		User u = optionalUser.orElse(null);
 		if(u != null) throw new UsernameTakenException(request.getUsername());
-		if(request.getUsername() == null || request.getPassword() == null) throw new BadRegisterRequestException(request);
+		if(request.getUsername() == null || request.getUsername().length() == 0 || request.getPassword() == null || request.getPassword().length() == 0) {
+			throw new BadRegisterRequestException(request);
+		}
 		var user = User.builder()
 				.firstName(request.getFirstname())
 				.lastName(request.getLastname())
 				.userName(request.getUsername())
 				.password(passwordEncoder.encode(request.getPassword()))
+				.profileImage(null)
 				.role(Role.USER)
 				.list_conversations(new HashSet<>())
 				.recievedMessages(new HashSet<>())
