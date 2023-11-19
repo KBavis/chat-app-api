@@ -94,7 +94,7 @@ public class KafkaImplementationTest {
 
 		// Verify that the messagingTemplate.convertAndSendToUser was called with the
 		// correct arguments
-		verify(messagingTemplate, times(1)).convertAndSendToUser(conversation.getConversation_id().toString(),
+		verify(messagingTemplate, times(1)).convertAndSend(
 				"/topic/conversation/" + conversation.getConversation_id(), messageDTO);
 
 	}

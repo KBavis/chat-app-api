@@ -1,5 +1,7 @@
 package com.real.time.chatapp.Controllers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -14,6 +16,7 @@ import com.real.time.chatapp.Auth.AuthenticationRequest;
 import com.real.time.chatapp.Auth.AuthenticationResponse;
 import com.real.time.chatapp.Auth.RegisterRequest;
 import com.real.time.chatapp.ControllerServices.AuthenticationService;
+import com.real.time.chatapp.ControllerServices.ConversationService;
 import com.real.time.chatapp.Exception.BadRegisterRequestException;
 import com.real.time.chatapp.Exception.UsernameTakenException;
 
@@ -23,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthenticationController {
+	private static Logger LOGGER = LoggerFactory.getLogger(AuthenticationController.class);
 	
 	private final AuthenticationService service;
 	
@@ -33,16 +37,14 @@ public class AuthenticationController {
 	 * @return
 	 */
 	@PostMapping("/register")
-	public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
-		AuthenticationResponse response;
+	public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+		AuthenticationResponse response = null;
 		try {
 			response = service.register(request);
 		} catch(UsernameTakenException ex) {
-			String errorMessage = "The requested username is already taken.";
-			throw new ResponseStatusException(HttpStatus.CONFLICT, errorMessage);
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
 		} catch(BadRegisterRequestException ex) {
-			String errorMessage = "The register request is invalid.";
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
 		}
 		return ResponseEntity.ok(response); 
 	}
@@ -56,13 +58,13 @@ public class AuthenticationController {
 	 * @return
 	 */
 	@PostMapping("/authenticate")
-	public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request){
+	public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest request){
 		AuthenticationResponse response;
 		try {
 			response = service.authenticate(request);
 		} catch(BadCredentialsException ex) {
 			String errorMessage = "The provided credentials are invalid.";
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, errorMessage);
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorMessage);
 		}
 		return ResponseEntity.ok(response);
 	}

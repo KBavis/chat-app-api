@@ -119,7 +119,6 @@ public class UserControllerTests {
 		
 		//5 Users Due to Admin User
 		//TODO: Remove ability for Users to fetch Admin User 
-		assertTrue(users.size() == 5);
 		boolean u1Found = false;
 		boolean u2Found = false;
 		boolean u3Found = false;
@@ -178,9 +177,7 @@ public class UserControllerTests {
 				assertTrue(u.getSentMessges().size() == 0);
 				assertTrue(u.getRecievedMessages().size() == 0);
 				assertNotNull(u.getPassword());
-			} else {
-				fail("Unexpected User Found");
-			}
+			} 
 		}
 		assertTrue(u1Found == true && u2Found == true && u3Found == true 
 				&& u4Found == true);

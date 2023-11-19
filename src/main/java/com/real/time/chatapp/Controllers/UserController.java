@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.real.time.chatapp.Assemblers.UserModelAssembler;
@@ -47,6 +48,12 @@ public class UserController {
 				.collect(Collectors.toList());
 
 		return CollectionModel.of(users, linkTo(methodOn(UserController.class).all()).withSelfRel());
+	}
+	
+	@GetMapping("/users/load")
+	public EntityModel<UserResponseDTO> loadUser(){
+		User user = userService.loadUser();
+		return userAssembler.toModel(user);
 	}
 
 	/**
@@ -92,6 +99,11 @@ public class UserController {
 				linkTo(methodOn(UserController.class).searchUsersByUserName(userName)).withSelfRel());
 	}
 	
+	public ResponseEntity<?> uploadProfileImage(@RequestParam("file") MultipartFile file, @PathVariable Long id){
+		
+		return ResponseEntity.ok("Image uploaded successfully");
+	}
+	
 	/**
 	 * Updating a user
 	 * 
@@ -103,6 +115,8 @@ public class UserController {
 	public ResponseEntity<?> updateUser(@RequestBody UserDTO newUser, @PathVariable Long id) {
 		EntityModel<UserResponseDTO> entityModel;
 		try {
+			System.out.println("In Update User");
+			System.out.println(newUser.toString());
 			User updatedUser = userService.updateUser(id, newUser);
 			entityModel = userAssembler.toModel(updatedUser);
 		} catch(UnauthorizedException ex) {

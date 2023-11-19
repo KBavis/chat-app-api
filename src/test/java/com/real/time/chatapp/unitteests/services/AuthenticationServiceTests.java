@@ -113,8 +113,7 @@ public class AuthenticationServiceTests {
 		});
 
 		assertNotNull(exception);
-		assertEquals(exception.getLocalizedMessage(), "Bad Register Request: username[" + registerRequest.getUsername()
-				+ "], password[" + registerRequest.getPassword() + "]");
+		assertEquals(exception.getLocalizedMessage(), "Bad Register Request: Please Enter A Valid Username And Password");
 	}
 
 	@Test

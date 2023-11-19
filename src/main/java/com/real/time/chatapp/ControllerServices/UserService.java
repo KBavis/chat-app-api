@@ -54,6 +54,13 @@ public class UserService {
 		String[] firstAndLast = name.split(" ");
 		return userRepository.searchUsersByName(firstAndLast[0], firstAndLast[1]);
 	}
+	
+	public User loadUser() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String authenticatedUsername = authentication.getName().trim();
+		User authUser = userRepository.findByUserName(authenticatedUsername).orElseThrow(() -> new UserNotFoundException(authenticatedUsername));
+		return authUser;
+	}
 
 	/**
 	 * Fetch A User By Username
