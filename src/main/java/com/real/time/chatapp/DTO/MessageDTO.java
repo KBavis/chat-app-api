@@ -20,7 +20,13 @@ import lombok.Setter;
 @Builder
 public class MessageDTO {
 	private Long id;
+	private Long conversationId;
 	private boolean isRead;
 	private Date sendDate;
 	private String content;
+	@Override
+	public String toString() {
+		return "MessageDTO [id=" + id + ", isRead=" + isRead + ", sendDate=" + sendDate + ", content=" + content + "]";
+	}
+	
 }
