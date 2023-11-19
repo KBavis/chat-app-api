@@ -24,6 +24,7 @@ public class UserResponseDTO {
 	private String firstName;
 	private String lastName;
 	private String password;
+	private String profileImage;
 	private Role role;
 	private Set<Conversation> list_conversations;
 	private List<Message> sentMessges;

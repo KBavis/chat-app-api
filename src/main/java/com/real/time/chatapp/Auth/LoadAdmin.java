@@ -38,7 +38,7 @@ public class LoadAdmin {
 		return args -> {
 			Long id = (long) 0;
 			if(!userRepository.findByUserName("AdminUser").isPresent()) {
-				User adminUser = new User(id, "AdminUser","Admin", "User", passwordEncoder.encode(adminPassword), Role.ADMIN, null, null, null );
+				User adminUser = new User(id, "AdminUser","Admin", "User", passwordEncoder.encode(adminPassword),null, Role.ADMIN, null, null, null);
 				log.info(userRepository.save(adminUser) + " saved.");
 				log.info("Database initialized.");
 			}
