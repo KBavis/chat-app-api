@@ -121,7 +121,7 @@ public class KafkaConsumeProducerTest {
 		kafkaConsumer.consume(record);
 
 		// Assertions
-		verify(messagingTemplate, times(1)).convertAndSendToUser(message.getConversationId().toString(),
+		verify(messagingTemplate, times(1)).convertAndSend(
 				"/topic/conversation/" + message.getConversationId(), message);
 	}
 

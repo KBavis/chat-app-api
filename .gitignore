@@ -32,4 +32,8 @@ build/
 ### VS Code ###
 .vscode/
 
+src/main/resources/**
+/src/main/resources/**
+
 application.properties
+/.apt_generated_tests/
