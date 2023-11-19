@@ -56,6 +56,7 @@ public class User implements UserDetails{
 	private String firstName;
 	private String lastName;
 	private String password;
+	private String profileImage;
 	
 	//Enumerated Tells Spring that this is an Enum
 	@Enumerated(EnumType.STRING)
