@@ -2,6 +2,7 @@ package com.real.time.chatapp.ControllerServices;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,7 +32,13 @@ public class UserService {
 	 * @return
 	 */
 	public List<User> getAllUsers() {
-		return userRepository.findAll();
+		List<User> users = userRepository.findAll();
+		User authUser = loadUser();
+		//Filter Out Admin User And Authenticated User
+		users = users.stream()
+				.filter(u -> (!u.getUsername().equals(authUser.getUsername()) && !u.getUsername().equals("AdminUser")))
+				.collect(Collectors.toList());
+		return users;
 	}
 
 	/**
@@ -54,11 +61,12 @@ public class UserService {
 		String[] firstAndLast = name.split(" ");
 		return userRepository.searchUsersByName(firstAndLast[0], firstAndLast[1]);
 	}
-	
+
 	public User loadUser() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		String authenticatedUsername = authentication.getName().trim();
-		User authUser = userRepository.findByUserName(authenticatedUsername).orElseThrow(() -> new UserNotFoundException(authenticatedUsername));
+		User authUser = userRepository.findByUserName(authenticatedUsername)
+				.orElseThrow(() -> new UserNotFoundException(authenticatedUsername));
 		return authUser;
 	}
 
@@ -86,11 +94,16 @@ public class UserService {
 			throw new UnauthorizedException(user);
 		}
 
-		if(userDTO.getFirstName() != null) user.setFirstName(userDTO.getFirstName());
-		if(userDTO.getLastName() != null) user.setLastName(userDTO.getLastName());
-		if(userDTO.getPassword() != null) user.setPassword(userDTO.getPassword());
-		if(userDTO.getRole() != null) user.setRole(userDTO.getRole());
-		if(userDTO.getUsername() != null) user.setUserName(userDTO.getUsername());
+		if (userDTO.getFirstName() != null)
+			user.setFirstName(userDTO.getFirstName());
+		if (userDTO.getLastName() != null)
+			user.setLastName(userDTO.getLastName());
+		if (userDTO.getPassword() != null)
+			user.setPassword(userDTO.getPassword());
+		if (userDTO.getRole() != null)
+			user.setRole(userDTO.getRole());
+		if (userDTO.getUsername() != null)
+			user.setUserName(userDTO.getUsername());
 		return userRepository.save(user);
 	}
 
@@ -136,7 +149,8 @@ public class UserService {
 	public boolean validateUser(User user) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		String authenticatedUsername = authentication.getName().trim();
-		User authUser = userRepository.findByUserName(authenticatedUsername).orElseThrow(() -> new UserNotFoundException(authenticatedUsername));
+		User authUser = userRepository.findByUserName(authenticatedUsername)
+				.orElseThrow(() -> new UserNotFoundException(authenticatedUsername));
 
 		if (authUser.getRole() != Role.ADMIN && !user.getUsername().trim().equals(authenticatedUsername)) {
 			return false;

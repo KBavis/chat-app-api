@@ -22,6 +22,6 @@ public class ConversationResponseDTO {
     private Long conversation_id;
     private Date conversationStart;
     private int numUsers;
-    private List<Message> messages;
+    private List<MessageResponseDTO> messages;
     private List<User> users;
 }
