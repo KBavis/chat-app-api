@@ -155,6 +155,24 @@ public class MessageController {
 		return CollectionModel.of(entityModels,
 				linkTo(methodOn(MessageController.class).searchMessagesByIsRead()).withSelfRel());
 	}
+	
+
+	/**
+	 * Get most recent message of a conversation
+	 *
+	 * @param id
+	 * @return
+	 */
+	@GetMapping("/messages/recent/{id}")
+	public EntityModel<MessageResponseDTO> recent(@PathVariable Long id) {
+		Message msg;
+		try {
+			msg = messageService.getMostRecentMessage(id);
+		} catch (UnauthorizedException ex) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
+		}
+		return messageAssembler.toModel(msg);
+	}
 
 	/**
 	 * 

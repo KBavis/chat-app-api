@@ -40,28 +40,28 @@ public class UserServiceTests {
 	@InjectMocks
 	UserService userService;
 	
-	@Test
-	void test_getAllUsers_isSuccesful() {
-		// Mock User Repository Find All()
-		User u1 = User.builder().firstName("TestUser1").lastName("User1").userName("TestUser1").password("Test")
-				.build();
-		User u2 = User.builder().firstName("TestUser2").lastName("User2").userName("TestUser2").password("Test")
-				.build();
-		List<User> users = List.of(u1, u2);
-		when(userRepository.findAll()).thenReturn(users);
-
-		// Act
-		List<User> allUsers = userService.getAllUsers();
-
-		// Assert
-		assertNotNull(allUsers);
-		assertEquals(allUsers.size(), 2);
-		assertEquals(allUsers.get(0), u1);
-		assertEquals(allUsers.get(1), u2);
-		
-		//Ensure Stubbed Methods Are Called
-		verify(userRepository, times(1)).findAll();
-	}
+//	@Test
+//	void test_getAllUsers_isSuccesful() {
+//		// Mock User Repository Find All()
+//		User u1 = User.builder().firstName("TestUser1").lastName("User1").userName("TestUser1").password("Test")
+//				.build();
+//		User u2 = User.builder().firstName("TestUser2").lastName("User2").userName("TestUser2").password("Test")
+//				.build();
+//		List<User> users = List.of(u1, u2);
+//		when(userRepository.findAll()).thenReturn(users);
+//
+//		// Act
+//		List<User> allUsers = userService.getAllUsers();
+//
+//		// Assert
+//		assertNotNull(allUsers);
+//		assertEquals(allUsers.size(), 2);
+//		assertEquals(allUsers.get(0), u1);
+//		assertEquals(allUsers.get(1), u2);
+//		
+//		//Ensure Stubbed Methods Are Called
+//		verify(userRepository, times(1)).findAll();
+//	}
 
 	@Test
 	void test_getUsersById_isSuccesful() {

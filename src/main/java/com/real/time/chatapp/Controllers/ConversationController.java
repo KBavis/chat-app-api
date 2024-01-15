@@ -86,6 +86,7 @@ public class ConversationController {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access");
 		}
 	}
+	
 
 	/**
 	 * Searching for conversations that have occured after a specific date

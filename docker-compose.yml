@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+   zookeeper:
+      image: wurstmeister/zookeeper
+      container_name: zookeeper-container-test
+      environment:
+         ZOOKEEPER_CLIENT_PORT: 2181
+         ZOOKEEPER_TICK_TIME: 2000
+      ports:
+         - "2181:2181"
+         
+   kafka:
+      image: wurstmeister/kafka
+      container_name: kafka-container-test
+      ports:
+         - "9092:9092"
+      environment:
+         KAFKA_ADVERTISED_HOST_NAME: kafka
+         KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+         KAFKA_ADVERTISED_PORT: 9092
+         KAFKA_CREATE_TOPICS: "messages:1:1"
+      depends_on:
+         - zookeeper
+
+   postgres:
+      image: postgres
+      container_name: postgres-container-test
+      ports:
+         - "5432:5432"
+      environment:
+         POSTGRES_DB: chat-app
+         POSTGRES_USER: postgres
+         POSTGRES_PASSWORD: AndrewLuck626
+      volumes:
+         - C:\postgres_datapart:/var/lib/postgresql/data
+      restart: always
+   
+   
+
+

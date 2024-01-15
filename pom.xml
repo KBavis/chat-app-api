@@ -144,6 +144,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
+		<finalName>chat-app-api</finalName>
 	</build>
 
 </project>
