@@ -16,7 +16,7 @@ import com.real.time.chatapp.Entities.User;
  *
  */
 @Configuration
-public class RestConfiguration implements RepositoryRestConfigurer {
+public class RestConfig implements RepositoryRestConfigurer {
 
     @Override
     public void configureRepositoryRestConfiguration(
