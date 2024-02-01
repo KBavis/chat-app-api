@@ -35,7 +35,7 @@ public class SecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.csrf().disable().authorizeHttpRequests()
 				.requestMatchers("/auth/**", "/auth/authenticate", "/auth/authenticate/", "/auth/register",
-						"/connect/**", "/connect**") //TODO: Remove Endpoints After Connect
+						"/connect/**", "/connect**") 
 				.permitAll().anyRequest().authenticated().and().sessionManagement()
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().cors().and()
 				.authenticationProvider(authenticationProvider)

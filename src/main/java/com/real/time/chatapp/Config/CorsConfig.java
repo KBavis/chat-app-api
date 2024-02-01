@@ -14,7 +14,7 @@ public class CorsConfig{
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
 				registry.addMapping("/**")
-					.allowedOrigins("http://localhost:3000")
+					.allowedOrigins("http://localhost:3000", "http://ec2-44-201-100-80.compute-1.amazonaws.com:3000") //added ec2 instance 
 					.allowedMethods("*")
 					.allowedHeaders("*")
 					.allowCredentials(true)
