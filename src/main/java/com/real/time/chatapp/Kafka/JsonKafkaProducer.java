@@ -9,6 +9,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
 import com.real.time.chatapp.DTO.MessageDTO;
+import com.real.time.chatapp.DTO.MessageResponseDTO;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,7 +26,7 @@ public class JsonKafkaProducer {
 		Message<MessageDTO> message = MessageBuilder
 				.withPayload(data)
 				.setHeader(KafkaHeaders.TOPIC, topicName)
-				.setHeader(KafkaHeaders.KEY, data.getId().toString())
+				.setHeader(KafkaHeaders.KEY, data.getMessage_id().toString())
 				.build();
 		
 		kafkaTemplate.send(message);

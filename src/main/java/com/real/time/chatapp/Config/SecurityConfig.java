@@ -16,42 +16,32 @@ import lombok.RequiredArgsConstructor;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-	
+
 	private final JwtAuthenticationFilter jwtAuthFilter;
 	private final AuthenticationProvider authenticationProvider;
-	
-	
+
 	/**
-	 *  App startup will cause Spring to search for bean of type SecurityFilterChain
-	 *  	- Permit Whitelisted Requests (No Auth Needed)
-	 *  	- Authenticate Other Requests
-	 *  	- Stateless Session Management
-	 *  	- Provide Authentication provided
-	 *  	- Bind JwtAuthFilter, Ensuring It Occurs Before UsernamePasswordAuthenticationFilter
+	 * App startup will cause Spring to search for bean of type SecurityFilterChain
+	 * - Permit Whitelisted Requests (No Auth Needed) - Authenticate Other Requests
+	 * - Stateless Session Management - Provide Authentication provided - Bind
+	 * JwtAuthFilter, Ensuring It Occurs Before UsernamePasswordAuthenticationFilter
+	 * 
 	 * @param http
 	 * @return
 	 * @throws Exception
 	 */
-	
-	
+
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http
-		.csrf()
-		.disable()
-		.authorizeHttpRequests()
-		.requestMatchers("/auth/authenticate", "/auth/register", "/connect/**", "/connect**")
-		.permitAll()
-		.anyRequest()
-		.authenticated()
-		.and()
-		.sessionManagement()
-		.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-		.and()
-		.authenticationProvider(authenticationProvider)
-		.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-		
+		http.csrf().disable().authorizeHttpRequests()
+				.requestMatchers("/auth/**", "/auth/authenticate", "/auth/authenticate/", "/auth/register",
+						"/connect/**", "/connect**") 
+				.permitAll().anyRequest().authenticated().and().sessionManagement()
+				.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().cors().and()
+				.authenticationProvider(authenticationProvider)
+				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
 		return http.build();
 	}
-	
+
 }

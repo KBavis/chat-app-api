@@ -1,0 +1,70 @@
+version: "3.8"
+
+networks:
+   chat-network:
+      driver: bridge
+
+services:
+   zookeeper:
+      image: wurstmeister/zookeeper
+      container_name: zookeeper
+      ports:
+         - "2181:2181"
+      network_mode: bridge
+      mem_limit: 350m
+      #all services should running on bridge network
+
+   kafka:
+      image: wurstmeister/kafka
+      container_name: kafka
+      ports:
+         - "9092:9092"
+      environment:
+         KAFKA_ZOOKEEPER_CONNECT: 172.17.0.1:2181
+         KAFKA_CREATE_TOPICS: messages:1:1
+         KAFKA_LISTENERS: OUTSIDE://0.0.0.0:9092
+         #changing the advertised listener to new ec2 instance IP
+         KAFKA_ADVERTISED_LISTENERS: OUTSIDE://44.210.93.89:9092
+         KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: OUTSIDE:PLAINTEXT
+         KAFKA_INTER_BROKER_LISTENER_NAME: OUTSIDE
+         KAFKA_LOG_RETENTION_HOURS: 24
+         KAKFA_LOG_SEGMENT_BYTES: 1073741824 #1GB
+         KAFKA_LOG_CLEANER_BACKOFF_MS: 15000
+         KAKFA_LOG_CLEANER_MIN_CLEANABLE_RATIO: 0.5
+         KAFKA_HEAP_OPTS: "-Xmx256M -Xms128M"
+      depends_on:
+         - zookeeper
+      network_mode: bridge
+
+   postgres:
+      image: postgres
+      container_name: postgres
+      ports:
+         - "5432:5432"
+      environment:
+         POSTGRES_DB: chat-app
+         POSTGRES_USER: postgres
+         POSTGRES_PASSWORD: AndrewLuck626!
+      #note: this was change from C:\pg_volume: following setting up of ec2 instance
+      volumes:
+         - postgres_data:/var/lib/postgresql/data
+      restart: always
+      network_mode: bridge
+      mem_limit: 300m
+
+   spring-boot-app:
+      image: api-image:latest
+      container_name: spring-boot-app
+      ports:
+         - "8080:8080"
+      depends_on:
+         - zookeeper
+         - kafka
+         - postgres
+      restart: always
+      network_mode: bridge
+      environment:
+         KAFKA_HEAP_OPTS: "-Xmx64M -Xms32M"
+
+volumes:
+   postgres_data:

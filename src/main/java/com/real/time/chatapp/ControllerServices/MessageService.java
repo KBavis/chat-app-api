@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.real.time.chatapp.DTO.MessageDTO;
+import com.real.time.chatapp.DTO.MessageResponseDTO;
 import com.real.time.chatapp.Entities.Conversation;
 import com.real.time.chatapp.Entities.Message;
 import com.real.time.chatapp.Entities.Role;
@@ -73,6 +74,19 @@ public class MessageService {
 			throw new UnauthorizedException(user);
 		}
 		return msg;
+	}
+	
+	/**
+	 * Get Most Recent Message of A Conversation 
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public Message getMostRecentMessage(Long id) {
+		Conversation conversation = conversationRepository.findById(id).orElseThrow(() -> new ConversationNotFoundException(id));
+		//Extract Most Recent Message
+		List<Message> messages = conversation.getMessages();
+		return messages.get(messages.size() - 1);
 	}
 
 	private boolean canAccessMessage(Message msg, User user) {
@@ -187,13 +201,25 @@ public class MessageService {
 		Message savedMessage = messageRepository.save(message);
 		
 		//Send Message Via Kafka 
-		messageDTO.setId(savedMessage.getMessage_id());
+		messageDTO.setMessage_id(savedMessage.getMessage_id());
 		messageDTO.setRead(savedMessage.isRead());
 		messageDTO.setSendDate(savedMessage.getSendDate());
 		messageDTO.setConversationId(conversationID);
-		
-		LOG.info(String.format("MessagesDTO: %s" , messageDTO.toString()));
+		messageDTO.setSenderId(savedMessage.getSender().getUser_id());
+//		MessageResponseDTO messageResponseDTO = MessageResponseDTO.builder()
+//				.message_id(savedMessage.getMessage_id())
+//				.isRead(savedMessage.isRead())
+//				.sendDate(savedMessage.getSendDate())
+//				.conversation(savedMessage.getConversation())
+//				.sender(savedMessage.getSender())
+//				.content(savedMessage.getContent())
+//				.build();
+//		
+//		
+		LOG.info(String.format("MessageDTO: %s" , messageDTO.toString()));
 		kafkaProducer.sendMessage(messageDTO);
+		
+	
 		
 		return savedMessage;
 	}

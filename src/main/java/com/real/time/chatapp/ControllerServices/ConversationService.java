@@ -1,17 +1,13 @@
 package com.real.time.chatapp.ControllerServices;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.NewTopic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -34,7 +30,6 @@ public class ConversationService {
 
 	private final ConversationRepository conversationRepository;
 	private final UserRepository userRepository;
-	private final AdminClient adminClient;
 	private static Logger LOGGER = LoggerFactory.getLogger(ConversationService.class);
 	
 	/**
