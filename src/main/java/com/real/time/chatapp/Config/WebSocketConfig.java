@@ -19,6 +19,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
     @Override
     //TODO: Change This From Local Host to Our EC2 Instance
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/connect").setAllowedOrigins("http://localhost:3000", "http://ec2-3-90-160-1.compute-1.amazonaws.com:3000").withSockJS(); //added ec2 instance
+        registry.addEndpoint("/connect").setAllowedOrigins(
+        		"http://localhost:3000", 
+        		"http://ec2-3-90-160-1.compute-1.amazonaws.com:3000",
+        		"http://ec2-3-90-160-1.compute-1.amazonaws.com" 
+        		).withSockJS(); //added ec2 instance (for reverse proxy and not)
     }
 }
