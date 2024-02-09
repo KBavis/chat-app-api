@@ -6,11 +6,7 @@ Working with Spring is an area I always wanted to delve into deeply. Backend dev
 
 In order to install the application and run the project, please do the following:
 
-
-
------------BACKEND SETUP--------------
-
-
+		-----------BACKEND SETUP--------------
 
 		1) Clone The API repoistory (https://github.com/KBavis/chat-app-api.git) to your local machine.
 
@@ -22,53 +18,33 @@ In order to install the application and run the project, please do the following
 
 
 		3) Build your API Docker Image
-
 		        - Ensure that the 'Dockerfile' is referencing the correct location of your .jar file and the proper name
-
 			- Run the command 'docker build -t api-image:latest .' while in the working directy of your Docker Image and Target Directory (where your .jar should be located)
 
+		4) Update Your Docker Compose File
+			- Update KAFKA_ZOOKEEPER_CONNECT host domain (this should be the IPV4 Address of the 'bridge' network --> run 'docker inspect network bridge' to determine
+			- Update KAFKA_ADVERTISED_LISTENERS host domain (if running locally, this should be localhost)
 
-	4) Update Your Docker Compose File
+		5) Run Docker-Compose File
+			- Execute the command 'docker-compose up -d' in the working directory of your docker-compose.yml file
 
-		- Update KAFKA_ZOOKEEPER_CONNECT host domain (this should be the IPV4 Address of the 'bridge' network --> run 'docker inspect network bridge' to determine
-		- Update KAFKA_ADVERTISED_LISTENERS host domain (if running locally, this should be localhost)
+		----------FRONTEND SETUP---------------
 
+		1) Clone the Frontend Repository (https://github.com/KBavis/chat-app-client.git) to your local machine.
+		
+  		2) Update conifg.js host domain to be 'localhost'
 
+		3) If attempting to run locally, there is no need to utilize the dokcer-compose.yml file (as this serves as a reverse proxy for our EC2 Instance), so simply build your docker image via the following commnad:
+			- docker build -t client-image:latest .
+	
+ 		4) Run the docker image :
+			- 'docker run -p 3000:3000 client-image:latest'
 
-	5) Run Docker-Compose File
-
-		- Execute the command 'docker-compose up -d' in the working directory of your docker-compose.yml file
-
-
-
-	----------FRONTEND SETUP---------------
-
-
-
-	1) Clone the Frontend Repository (https://github.com/KBavis/chat-app-client.git) to your local machine.
-
-
-
-	2) Update conifg.js host domain to be 'localhost'
-
-
-
-	3) If attempting to run locally, there is no need to utilize the dokcer-compose.yml file (as this serves as a reverse proxy for our EC2 Instance), so simply build your docker image via the following commnad:
-
-		- docker build -t client-image:latest .
-
-
-
-	4) Run the docker image :
-
-		'docker run -p 3000:3000 client-image:latest'
-
-
-
-	5) Access the login page by going to http://localhost:3000
+		5) Access the login page by going to http://localhost:3000
 
 
 TODO:
 	1) Handling Entities - I think that the way I have embedded all necessary attributes into the JSON returned by certain GET requests was a bit foolish. I beli		eve that a better approach would have been to simply include the ID of the embedded entity, rather than all of its field and attributes. This is because i	     n the long run, this is going to cause some issues with scalability. On top of this, when a user sends hundreds or thousands of messages, that GET request 	  will be smothered with data, making it hard to interpret.
 	2) Kafka - As mentioned above, I think my implementation of Kafka is a bit counter productive. I would love to be able to look into how to configure this for 		optimizing the real-time functionlaity this application provides. I feel as though another application using Kafka will help cement the concept for me.
 	3) Test Cases - I believe I wrote some extremely sound test cases, but I think there is room for improvement. Being able to ensure that the application works 		as expected is largely determined by the effectiveness of my test cases. I think that in the future, I should consider how to strucutre these better
+ 	4) Removing Depenedencies Using Jdeps - I beleive there are some depenedencies I have that may have contributed to the large amount of memory needed to run my spring boot application. To help combat this, I want to use a tool such as jdeps to remove any unused external depeendices that may have been incorrectly used. 
